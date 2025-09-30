@@ -1,0 +1,44 @@
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>SIPAE - Login</title>
+  <link rel="stylesheet" href="../css/estilo-login.css"/>
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <h1>Bem vindo!</h1>
+    <form>
+      <label>Login:</label>
+      <input type="text" id="login" required />
+      <label>Senha:</label>
+      <input type="password" id="senha" required />
+      <input type="button" value="Entrar" id="entrar">
+    </form>
+    <a href="./register.html" style="display:block;margin-bottom:-15px;text-align:center">Não possuo uma conta</a><br/>
+  </div>
+</body>
+<script type="module">
+import {FetchTarget,redirecionar} from '../script.js'
+localStorage.setItem('token',null)
+async function login(){
+ const login = document.getElementById("login").value;
+ const senha = document.getElementById("senha").value;
+
+ const result = await fetch(`${FetchTarget}/login`,{method:'POST',headers: { 'Content-Type': 'application/json' },body:JSON.stringify({login:login,pass:senha})});
+ const resultR = await result.json();
+ if (!resultR.ok){
+  return alert('Usuário ou senha inválidos')
+ }
+
+ localStorage.setItem('token',resultR.token);
+
+ redirecionar('Mostrar',{filtros:7});
+}
+document.getElementById('senha').addEventListener('keydown',async(event)=>{
+ if (event.key!=='Enter') return;
+ login()
+})
+document.getElementById('entrar').addEventListener('click', login);
+</script>
+
+</html>

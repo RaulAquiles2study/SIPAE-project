@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPAE - PRINCIPAL</title>
+    <link rel="stylesheet" href="../css/estilo-novo.css"/>
+    <link rel="stylesheet" href="../css/estilo-materiais.css"/>
+</head>
+<body>
+ <div class="container">
+  <aside class="menu-lateral">
+  </aside>
+
+  <main class="conteudo">
+   <header class="cabecalho">
+    <h1>SIPAE</h1>
+    <label for="f1">Filtrar por:</label>
+      <input id="set" type="checkbox" checked="true"/>Setores 
+      <input id="sub" type="checkbox"/>Subsetores
+      <input id="typ" type="checkbox"/>Tipos de Objeto <br/>
+
+    <input type="text" id="p1" class="pesquisa" placeholder="Pesquisar por setor..."/>
+    <input type="text" id="p2" class="pesquisa" placeholder="Pesquisar por subsetor..."/>
+    <input type="text" id="p3" class="pesquisa" placeholder="Pesquisar por tipo de objeto..."/>
+    <button class='botunn' id="rel">Gerar Relatório</button>
+   </header>
+
+   <div class="contents"></div>
+   <div class="footButtons">
+    <button class='botunn' id='allbck'><<</button>
+    <button class='botunn' id='bck'><</button>
+    <b id='showin'></b>
+    <button class='botunn' id='fwd'>></button>
+    <button class='botunn' id='allfwd'>>></button>
+   </div>
+  </main>
+ </div>
+ <script type="module" src="../script.js"></script>
+</body>
+</html>
+
+<script type="module">
+import {criarSidebar,FetchTarget,redirecionar,getUser} from '../script.js';
+let canPressShit = true;
+document.querySelector('.menu-lateral').appendChild(await criarSidebar())
+const userU = await fetch(`${FetchTarget}/users`,{headers:{token:localStorage.getItem('token')}});
+const user = (await userU.json()).user;
+let curFilter = 0;
+
+let send = {}
+let sendType = 0;
+
+async function edit(){
+  if (Object.keys(send).length>0){
+    console.log('sending bleh')
+    if (sendType==0)
+    await fetch(`${FetchTarget}/setores`,{method:'PUT',headers: { 'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify(send)});
+    if(sendType==1)
+    await fetch(`${FetchTarget}/subsetores`,{method:'PUT',headers: { 'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify(send)});
+    if(sendType==2){
+      await fetch(`${FetchTarget}/tipoObjetos`,{method:'PUT',headers: { 'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify(send)});
+    }
+    send = {}
+    await reload();
+  }
+}
+setInterval(edit,100)
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+console.log(user)
+if (user.rank >=5){
+ const btnSect = document.createElement('button');
+ btnSect.innerText = 'Novo Setor';
+ btnSect.className = 'botunn';
+ btnSect.onclick = async()=>{
+  if(!canPressShit)return;
+  canPressShit = false
+  await fetch(`${FetchTarget}/setores`,{method:'POST',headers:{token:localStorage.getItem('token')}});
+  await reload();
+ }
+ document.querySelector('.cabecalho').appendChild(btnSect);
+}
+
+async function recalcFilters(){
+ curFilter = 0
+ if (document.getElementById('typ').checked){curFilter+=4}//add 0010
+ if (document.getElementById('sub').checked){curFilter+=2}//add 0100
+ if (document.getElementById('set').checked){curFilter+=1}//add 1limit000
+ console.log(curFilter)
+ localStorage.setItem('curFilter',curFilter);
+ await reload()
+}
+//BEHOLD! MY INNEFFICIENCY MACHINE!
+var page = 0;
+var limit = 10;
+var i = page*limit;
+var showing = 0;
+var totalLen = 0;
+async function reload(){
+ canPressShit = false
+ const r1 = document.getElementById('p1').value;
+ const r2 = document.getElementById('p2').value;
+ const r3 = document.getElementById('p3').value;
+ 
+ const params = new URLSearchParams()
+
+ if (r1.length>0) params.append('sec',r1)
+ if (r2.length>0) params.append('sub',r2)
+ if (r3.length>0) params.append('cat',r3)
+
+ const querystring = params.toString();
+
+ const resU = await fetch(`${FetchTarget}/getStuff${querystring ? '?' + querystring : ''}`,{headers:{filter:curFilter}});
+ const res = await resU.json();
+
+ const curScroll = window.scrollY;
+
+ const main = document.querySelector('.conteudo')
+ const contents = document.querySelector('.contents')
+ while (contents.hasChildNodes())
+  contents.removeChild(contents.firstChild)
+ getStuff(contents,res,0).then(()=>{
+  canPressShit = true;
+  document.body.style.cursor = 'auto';
+ })
+}
+function flattenList(list,level){
+  const newlist = []
+  for (const item of list){
+    const {children, ...values} = item
+    newlist.push({...values,level:level})
+    if (item.children.length>0){
+      newlist.push(...flattenList(item.children,level+1))
+    }
+  }
+  return newlist;
+}
+async function getStuff(base,contents){
+  if (contents.length<1)return;
+
+  const items = flattenList(contents,0)
+  i = page*limit;
+  showing = 0;
+  if (i >= items.length) {i=(--page*limit)}
+  const firstItem = items[page*limit]
+  totalLen = items.length
+  //not sector or subsector
+  if (firstItem!=null)
+  if (firstItem.type>1){
+    let search = page*limit
+    let item = firstItem
+    while (item.type>1&&search>=0){
+      item = items[--search];
+      if (item.type<2){
+        base.appendChild(await getThingy(item))
+        break;
+      }
+    }
+  }
+
+  console.log(i)
+  console.log((page*limit)+limit)
+  while (i<((page*limit)+limit)&&i<items.length) {
+    const item = items[i];
+    const thingy = await getThingy(item)
+    base.appendChild(thingy)
+    i++
+    showing++
+  }
+}
+async function getThingy(item){
+  let blh
+  if (item.type==0) blh = await getSector(item);
+  if (item.type==1) blh = await getSubsector(item);
+  if (item.type==2) blh = await getCategory(item);
+  blh.style.marginLeft = (3*item.level)+'%'
+  blh.style.width = (100-(3*item.level))+('%')
+  return blh
+}
+async function getCategory(item){
+ const base = document.createElement('div');
+ base.className = 'item'
+ const blurb = document.createElement('div');
+ blurb.style.backgroundColor = '#f39c12';
+ blurb.style.width='20px';
+ blurb.style.height='30';
+ blurb.style.borderTopLeftRadius='18px'
+ blurb.style.borderBottomLeftRadius='18px'
+ base.appendChild(blurb)
+ if (user.rank > 4){
+  const img = document.createElement('img');
+  img.src = '../edit.png';
+  img.width = 32;
+  img.height = 32;
+  img.style.marginLeft='25px'
+
+  img.addEventListener('mouseover',()=>{
+   document.body.style.cursor = 'pointer';
+  });
+
+  img.addEventListener('mouseout',()=>{
+   document.body.style.cursor = 'auto';
+  });
+
+  const img2 = document.createElement('img');
+  img2.src = '../delete.png';
+  img2.width = 32;
+  img2.height = 32;
+
+  img2.addEventListener('mouseover',()=>{
+   document.body.style.cursor = 'pointer';
+  });
+
+  img2.addEventListener('mouseout',()=>{
+   document.body.style.cursor = 'auto';
+  });
+
+  img2.onclick = async () =>{
+   if(!canPressShit)return;
+   canPressShit = false
+   if (confirm('Gostaria de apagar '+item.name+'?'))
+    await (await fetch(`${FetchTarget}/tipoObjetos/`+item.ID,{method:'DELETE',headers:{token:localStorage.getItem('token')}})).json();
+   await reload();
+  }
+
+  img.onclick = ()=>{
+   if(!canPressShit)return;
+   canPressShit = false
+   base.classList.add('editing');
+   document.body.style.cursor = 'auto';
+   base.removeChild(name);
+   base.removeChild(img);
+   base.removeChild(img2);
+   base.removeChild(img3);
+   
+   const editStr = document.createElement('input');
+   editStr.className = 'itemEdit';
+   editStr.value = (name.innerText=='Novo tipo de objeto'?'':name.innerText);
+   let block = false;
+   editStr.addEventListener('keydown', async (event)=>{
+     if (event.key!=='Enter') return;
+    if (block) return;
+    block = true;
+    if (editStr.value.length>40){
+      alert('Por favor, manter nome do item abaixo de 40 caracteres')
+      await reload();
+      return;
+    }
+    if (editStr.value.trim().length<1){
+      alert('Nome não pode ser vazio!')
+      await reload();
+      return;
+    }
+    base.classList.remove('editing');
+    sendType = 2
+    send = {id:item.ID,nm:editStr.value};
+   });
+   editStr.addEventListener('blur', async (event)=>{
+    if (block) return;
+    block = true;
+    if (editStr.value.length>40){
+      alert('Por favor, manter nome do item abaixo de 40 caracteres')
+      await reload();
+      return;
+    }
+    if (editStr.value.trim().length<1){
+      alert('Nome não pode ser vazio!')
+      await reload();
+      return;
+    }
+    base.classList.remove('editing');
+    sendType = 2
+    send = {id:item.ID,nm:editStr.value};
+   });
+   base.appendChild(editStr);
+   editStr.focus();
+  }
+
+  base.appendChild(img);
+  base.appendChild(img2);
+ }
+   const img3 = document.createElement('img');
+  img3.src = '../popout.png';
+  img3.width = 32;
+  img3.height = 32;
+
+  img3.addEventListener('mouseover',()=>{
+   document.body.style.cursor = 'pointer';
+  });
+
+  img3.addEventListener('mouseout',()=>{
+   document.body.style.cursor = 'auto';
+  });
+
+  img3.onclick = async () =>{
+   if(!canPressShit)return;
+   canPressShit = false
+   redirecionar('Objetos',{id:item.ID})
+   document.body.style.cursor = 'auto';
+  }
+
+ base.appendChild(img3)
+
+ const name = document.createElement('strong');
+ name.style.fontSize = '30px';
+ name.innerText = item.name;
+
+ base.appendChild(name);
+ return base;
+}
+async function getSubsector(item){
+ const base = document.createElement('div');
+ base.className = 'item'
+ const blurb = document.createElement('div');
+ blurb.style.backgroundColor = '#2ecc71';
+ blurb.style.width='20px';
+ blurb.style.height='100%';
+ blurb.style.borderTopLeftRadius='18px'
+ blurb.style.borderBottomLeftRadius='18px'
+ base.appendChild(blurb)
+ if (user.rank > 4){
+  const img = document.createElement('img');
+  img.src = '../edit.png';
+  img.width = 32;
+  img.height = 32;
+  img.style.marginLeft='25px'
+
+  img.addEventListener('mouseover',()=>{
+   document.body.style.cursor = 'pointer';
+  });
+
+  img.addEventListener('mouseout',()=>{
+   document.body.style.cursor = 'auto';
+  });
+
+  const img2 = document.createElement('img');
+  img2.src = '../delete.png';
+  img2.width = 32;
+  img2.height = 32;
+
+  img2.addEventListener('mouseover',()=>{
+   document.body.style.cursor = 'pointer';
+  });
+
+  img2.addEventListener('mouseout',()=>{
+   document.body.style.cursor = 'auto';
+  });
+
+  img2.onclick = async () =>{
+   if(!canPressShit)return;
+   canPressShit = false
+   if (confirm('Gostaria de apagar '+item.name+'?'))
+   await fetch(`${FetchTarget}/subsetores/`+item.ID,{method:'DELETE',headers:{token:localStorage.getItem('token')}});
+   await reload();
+  }
+
+  const objBtn = document.createElement('button');
+  objBtn.innerText = 'Novo Tipo de Objeto'
+  objBtn.className = 'botunn';
+  objBtn.onclick = async()=>{
+   if(!canPressShit)return;
+   canPressShit = false
+   await(await fetch(`${FetchTarget}/tipoObjetos`,{method:'POST',headers:{'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify({id:item.ID,isSub:true})})).json();
+   await reload();
+  }
+
+  img.onclick = ()=>{
+   if(!canPressShit)return;
+   canPressShit = false
+   base.classList.add('editing');
+   document.body.style.cursor = 'auto';
+   base.removeChild(name);
+   base.removeChild(img);
+   base.removeChild(img2);
+   base.removeChild(objBtn);
+   
+   const editStr = document.createElement('input');
+   editStr.className = 'itemEdit';
+   editStr.value = (name.innerText=='Novo Subsetor'?'':name.innerText);
+   let block = false;
+   editStr.addEventListener('keydown', async (event)=>{
+     if (event.key!=='Enter') return;
+    if (block) return;
+    block = true;
+    if (editStr.value.length>40){
+      alert('Por favor, manter nome do item abaixo de 40 caracteres')
+      await reload() 
+      return;
+    }
+    if (editStr.value.trim().length<1){
+      alert('Nome não pode ser vazio!')
+      await reload();
+      return;
+    }
+    base.classList.remove('editing');
+    sendType = 1
+    send = {id:item.ID,snm:editStr.value}
+   });
+   editStr.addEventListener('blur', async (event)=>{
+    if (block) return;
+    block = true;
+    if (editStr.value.length>40){
+      alert('Por favor, manter nome do item abaixo de 40 caracteres')
+      await reload();
+      return;
+    }
+    if (editStr.value.trim().length<1){
+      alert('Nome não pode ser vazio!')
+      await reload();
+      return;
+    }
+    base.classList.remove('editing');
+    sendType = 1
+    send = {id:item.ID,snm:editStr.value}
+   });
+   base.appendChild(editStr);
+   editStr.focus();
+  }
+
+  base.appendChild(img);
+  base.appendChild(img2);
+  base.append(objBtn)
+ }
+
+ const name = document.createElement('strong');
+ name.innerText = item.name;
+
+
+ base.appendChild(name);
+ return base;
+}
+async function getSector(item){
+ const base = document.createElement('div');
+ base.className = 'item'
+ const blurb = document.createElement('div');
+ blurb.style.backgroundColor = '#3498db';
+ blurb.style.width='20px';
+ blurb.style.height='100%';
+ blurb.style.borderTopLeftRadius='18px'
+ blurb.style.borderBottomLeftRadius='18px'
+ base.appendChild(blurb)
+ if (user.rank > 4){
+  const img = document.createElement('img');
+  img.src = '../edit.png';
+  img.width = 32;
+  img.height = 32;
+  img.style.marginLeft='25px'
+
+  img.addEventListener('mouseover',()=>{
+   document.body.style.cursor = 'pointer';
+  });
+
+  img.addEventListener('mouseout',()=>{
+   document.body.style.cursor = 'auto';
+  });
+
+  const img2 = document.createElement('img');
+  img2.src = '../delete.png';
+  img2.width = 32;
+  img2.height = 32;
+
+  img2.addEventListener('mouseover',()=>{
+   document.body.style.cursor = 'pointer';
+  });
+
+  img2.addEventListener('mouseout',()=>{
+   document.body.style.cursor = 'auto';
+  });
+
+  img2.onclick = async () =>{
+   if(!canPressShit)return;
+   canPressShit = false
+   if (confirm('Gostaria de apagar '+item.name+'?'))
+   await fetch(`${FetchTarget}/setores/`+item.ID,{method:'DELETE',headers:{token:localStorage.getItem('token')}});
+   await reload();
+  }
+
+  const ty = (await(await fetch(`${FetchTarget}/sector/childType/`+item.ID)).json()).result
+  const subBtn = document.createElement('button');
+  subBtn.innerText = 'Novo Subsetor'
+  subBtn.className = 'botunn';
+  subBtn.onclick = async()=>{
+   if(!canPressShit)return;
+   canPressShit = false
+   await fetch(`${FetchTarget}/subsetores`,{method:'POST',headers:{'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify({id:item.ID})});
+   await reload();
+  }
+  
+  const objBtn = document.createElement('button');
+   objBtn.innerText = 'Novo Tipo de Objeto'
+   objBtn.className = 'botunn';
+   objBtn.onclick = async()=>{
+    if(!canPressShit)return;
+    canPressShit = false
+    await(await fetch(`${FetchTarget}/tipoObjetos`,{method:'POST',headers:{'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify({id:item.ID,isSub:false})})).json();
+    await reload();
+  }
+  
+
+  img.onclick = ()=>{
+   if(!canPressShit)return;
+   canPressShit = false
+   base.classList.add('editing');
+   document.body.style.cursor = 'auto';
+   base.removeChild(name);
+   base.removeChild(img);
+   base.removeChild(img2);
+   if (ty>=0)
+   base.removeChild(subBtn);
+   if (ty<=0)
+   base.removeChild(objBtn);
+   const editStr = document.createElement('input');
+   editStr.className = 'itemEdit';
+   editStr.value = (name.innerText=='Novo Setor'?'':name.innerText);
+   let block = false;
+   editStr.addEventListener('keydown', async (event)=>{
+     if (event.key!=='Enter') return;
+    if (block) return;
+    block = true;
+    if (editStr.value.length>40){
+      alert('Por favor, manter nome do item abaixo de 40 caracteres')
+      await reload();
+      return;
+    }
+    if (editStr.value.trim().length<1){
+      alert('Nome não pode ser vazio!')
+      await reload();
+      return;
+    }
+    base.classList.remove('editing');
+    send = {id:item.ID,snm:editStr.value};
+    sendType = 0;
+   });
+   editStr.addEventListener('blur', async (event)=>{
+    if (block) return;
+    block = true;
+    if (editStr.value.length>40){
+      alert('Por favor, manter nome do item abaixo de 40 caracteres')
+      await reload();
+      return;
+    }
+    if (editStr.value.trim().length<1){
+      alert('Nome não pode ser vazio!')
+      await reload();
+      return;
+    }
+    base.classList.remove('editing');
+    send = {id:item.ID,snm:editStr.value};
+    sendType = 0;
+   });
+   base.appendChild(editStr);
+   editStr.focus();
+  }
+
+  base.appendChild(img);
+  base.appendChild(img2);
+  if (ty>=0)
+  base.appendChild(subBtn);
+  if (ty<=0)
+  base.appendChild(objBtn);
+ }
+
+ const name = document.createElement('strong')
+ name.style.width = '100%'
+ name.innerText = item.name;
+
+ base.appendChild(name);
+ return base;
+}
+
+document.querySelectorAll('input[type="checkbox"]').forEach((cb,i)=>{
+ cb.checked = ((localStorage.getItem('curFilter')&Math.pow(2,i))==Math.pow(2,i))
+ cb.addEventListener('change',async()=>{await recalcFilters()})
+})
+
+curFilter = localStorage.getItem('curFilter')
+
+document.getElementById('p1').onchange = ()=>{
+ reload();
+}
+document.getElementById('p2').onchange = ()=>{
+ reload();
+}
+document.getElementById('p3').onchange = ()=>{
+ reload();
+}
+reload()
+document.getElementById('rel').onclick = async()=>{
+ const csvU = await fetch(`${FetchTarget}/csv`)
+ const csv = await csvU.json();
+ const blob = new Blob(["\uFEFF"+csv.result], { type: 'text/csv;charset=utf-8;' });
+ const url = URL.createObjectURL(blob);
+ const link = document.createElement('a')
+ link.href = url
+ link.download = 'Relatorio.csv'
+ link.click();
+}
+document.getElementById('bck').onclick = async()=>{
+  page--;
+  if (page<0)page=0
+  reload();
+}
+document.getElementById('allbck').onclick = async()=>{
+  page = 0
+  reload();
+}
+document.getElementById('fwd').onclick = async()=>{
+  page++;
+  if (page>Math.floor(totalLen/limit)){
+    page = Math.floor(totalLen/limit);
+  }
+  reload();
+}
+document.getElementById('allfwd').onclick = async()=>{
+  page = Math.floor(totalLen/limit);
+  reload();
+}
+</script>

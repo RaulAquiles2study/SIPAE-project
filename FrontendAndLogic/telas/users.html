@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários</title>
+    <link rel="stylesheet" href="../css/estilo-novo.css"/>
+    <link rel="stylesheet" href="../css/estilo-materiais.css"/>
+</head>
+<body>
+    <div class="container">
+        <aside class="menu-lateral">
+        </aside>
+
+        <main class="conteudo">
+            <header class="cabecalho">
+                <h1>Usuários</h1>
+            </header>
+
+            <section class="cards"></section>
+        </main>
+    </div>
+    <script type="module" src="../script.js"></script>
+</body>
+</html>
+
+<script type="module">
+import {criarSidebar,FetchTarget,redirecionar,getUser,getRankString} from '../script.js';
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+
+const thisUser = await getUser();
+if (thisUser.rank < 4){
+ redirecionar('setores');
+ alert('Acesso Negado');
+}
+
+document.querySelector('.menu-lateral').appendChild(await criarSidebar())
+
+const cardsContainer = document.querySelector('.cards');
+
+function addObj(user){
+ const novoCard = document.createElement('div');
+ novoCard.classList.add('card-personalizado');
+ const novoDiv = document.createElement('div');
+ novoDiv.className = 'conteudo-card';
+ 
+ const h3 = document.createElement('h3');
+ h3.textContent = user.nome;
+ novoDiv.appendChild(h3);
+
+ const p = document.createElement('p');
+ p.textContent = 'ID: '+user.UID+' | email: '+user.email;
+ novoDiv.appendChild(p);
+
+ const role = document.createElement('p');
+ role.textContent = 'Cargo: '+getRankString(user.rank);
+ novoDiv.appendChild(role)
+
+ if ((user.rank < thisUser.rank)||thisUser.rank==6){
+  for (let i = 1;i<thisUser.rank;i++){
+   const b = document.createElement('input');
+   b.type = 'button';
+   b.value = 'Tornar '+getRankString(i);
+   b.onclick = async()=>{
+    const res = await fetch(`${FetchTarget}/users/setRole`,{method:'POST',headers: { 'Content-Type': 'application/json', 'token':localStorage.getItem('token') },body:JSON.stringify({id:user.UID,newrole:i})});
+    const resU = await res.json();
+    if (resU.ok){
+     role.textContent = 'Cargo: ' + getRankString(i);
+    }else{
+     alert('Acesso Negado!')
+    }
+   }
+   novoDiv.appendChild(b);
+  }
+
+  if (thisUser.uid==1){
+   const b = document.createElement('input');
+   b.type = 'button';
+   b.value = 'Tornar '+getRankString(6);
+   b.onclick = async()=>{
+    await fetch(`${FetchTarget}/users/setRole`,{method:'POST',headers: { 'Content-Type': 'application/json','token':localStorage.getItem('token')},body:JSON.stringify({id:user.UID,newrole:6})});
+    role.textContent = 'Cargo: ' + getRankString(6);
+   }
+   novoDiv.appendChild(b);
+  }
+  if (thisUser.rank>4){
+   novoDiv.appendChild(document.createElement('br'));
+
+   const b = document.createElement('input')
+   b.type = 'button';
+   b.value = 'Remover Usuário';
+   b.onclick = async()=>{
+    const result = await fetch(`${FetchTarget}/users/${user.UID}`,{method:'DELETE',headers: {'token':localStorage.getItem('token')}});
+    const resultU = await result.json();
+    if (resultU.ok){
+     cardsContainer.removeChild(novoCard);
+    }
+   }
+   novoDiv.appendChild(b);
+  }
+ }
+
+ novoCard.appendChild(novoDiv)
+
+ cardsContainer.appendChild(novoCard);
+}
+const users = await fetch(`${FetchTarget}/users/all/15`,{headers:{'Content-Type': 'application/json',token:localStorage.getItem('token')}});
+const usersU = await users.json();
+
+for (let i = 0;i<usersU.length;i++){
+ const u = usersU[i]
+ if (u.rank>thisUser.rank)
+  continue;
+
+ addObj(u);
+}
+
+</script>

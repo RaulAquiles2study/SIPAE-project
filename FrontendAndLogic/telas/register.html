@@ -1,0 +1,44 @@
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <link rel="stylesheet" href="../css/estilo-login.css"/>
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <h1>Registrar-se</h1>
+    <form>
+      <label>Login:</label>
+      <input type="text" id="login" required />
+      <label>Email:</label>
+      <input type="text" id="email" required />
+      <label>Senha:</label>
+      <input type="password" id="senha" required />
+      <input type="button" value="Registrar" id="entrar">
+    </form>
+    <a href="./index.html" style="display:block;margin-bottom:-30px;text-align:center">Já possuo uma conta</a><br/>
+  </div>
+</body>
+
+<script type="module">
+import {FetchTarget,redirecionar} from '../script.js'
+localStorage.setItem('token',null)
+document.getElementById('entrar').addEventListener('click', async () => {
+ const login = document.getElementById("login").value;
+ const senha = document.getElementById("senha").value;
+ const email = document.getElementById("email").value;
+
+ const result = await fetch(`${FetchTarget}/users`,{method:'POST',headers: { 'Content-Type': 'application/json' },body:JSON.stringify({name:login,pass:senha,email:email})});
+ const resultR = await result.json();
+
+ if (!resultR.ok){
+  return alert(resultR.error);
+ }
+
+ localStorage.setItem('token',resultR.token);
+
+ redirecionar('Mostrar');
+});
+</script>
+
+</html>

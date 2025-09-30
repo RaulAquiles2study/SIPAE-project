@@ -1,0 +1,83 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+}
+
+.login-page {
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #0b007b;
+  color: white;
+}
+
+.login-container {
+  background: white;
+  color: black;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px black;
+}
+
+input, button {
+  display: block;
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background-color: aqua;
+  font-weight: bold;
+  border: none;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #0b007b;
+  color: white;
+  padding: 1rem;
+  height: 100vh;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  margin: 10px 0;
+}
+
+.sidebar a {
+  color: white;
+  text-decoration: underline;
+}
+
+main {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f0f0f0;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.card {
+  background-color: white;
+  border: 2px solid #000;
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+}

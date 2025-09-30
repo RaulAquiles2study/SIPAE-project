@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPAE - PRINCIPAL</title>
+    <link rel="stylesheet" href="../css/estilo-novo.css"/>
+    <link rel="stylesheet" href="../css/estilo-materiais.css"/>
+</head>
+<body>
+ <div class="container">
+  <aside class="menu-lateral">
+  </aside>
+
+  <main class="conteudo">
+   <header class="cabecalho">
+    <h1>SIPAE</h1>
+    <h2 id="bleh"></h2>
+    <h2 id="extras"></h2>
+   </header>
+   <section class="contents">
+   </section>
+  </main>
+ </div>
+ <script type="module" src="../script.js"></script>
+</body>
+</html>
+<script type="module">
+import {criarSidebar,FetchTarget,redirecionar,getUser} from '../script.js'
+document.querySelector('.menu-lateral').appendChild(await criarSidebar())
+let canClickShit = true;
+const query = new URLSearchParams(window.location.search);
+const userU = await fetch(`${FetchTarget}/users`,{headers:{token:localStorage.getItem('token')}});
+const user = (await userU.json()).user;
+
+function getStatus(s){
+ switch (s) {
+  case 0:return 'Disponível';
+  case 1:return 'Manutenção';
+  case 2:return 'Quebrado';
+ }
+}
+let doin = {}
+let doinObj = {}
+async function edit(){
+    let did = false;
+    if (Object.keys(doin).length>0){
+        await fetch(`${FetchTarget}/tipoObjetos/field`,{method:'PUT',body:JSON.stringify(doin),headers:{token:localStorage.getItem('token'),'Content-Type':'application/json'}})
+        doin = {}
+        did = true
+    }
+    if (Object.keys(doinObj).length>0){
+        await fetch(`${FetchTarget}/objetos/field`,{method:'PUT',body:JSON.stringify(doinObj),headers:{token:localStorage.getItem('token'),'Content-Type':'application/json'}})
+        doinObj = {}
+        did = true
+    }
+    if (did)
+        await reload()
+}
+setInterval(edit,100);
+let loading = false;
+async function reload(){
+    if (loading) return;
+    loading = true;
+ canClickShit = true;
+ try{
+  document.getElementsByClassName('contents')[0].removeChild(document.getElementsByClassName('tabela')[0])
+ }catch(e){/*do nothing lmao*/}
+ const table = document.createElement('table');
+ table.className = 'tabela'
+ const fields = document.createElement('tr');
+ const catU = await fetch(`${FetchTarget}/category/${query.get('id')}`)
+ const cat = await catU.json();
+ console.log(cat)
+ document.getElementById('bleh').innerText = cat.name
+ const num = document.createElement('td')
+ num.innerText = '#'
+ fields.appendChild(num)
+ const stat = document.createElement('td')
+ stat.innerText = 'Status'
+ fields.appendChild(stat)
+ const data = String(cat.customData).split(',')
+
+ for (const field of data){
+  if (field == '') continue;
+  const f = document.createElement('td')
+  if (user.rank>4){
+   const del = document.createElement('img')
+   del.src = '../delete.png'
+   del.width = 12;
+   del.height = 12;
+   del.onmouseover = ()=>{
+    document.body.style.cursor = 'pointer'
+   }
+   del.onmouseout = ()=>{
+    document.body.style.cursor = 'auto'
+   }
+   del.onclick = async()=>{
+    if (!canClickShit) return;
+    canClickShit = false;
+    if (confirm('Gostaria de deletar esse campo?')){
+        await fetch(`${FetchTarget}/tipoObjetos/${query.get('id')}/field/${data.indexOf(field)}`,{headers:{token:localStorage.getItem('token')},method:'DELETE'})
+        await reload()
+    }
+    document.body.style.cursor = 'auto'
+   }
+   f.appendChild(del)
+   const edt = document.createElement('img')
+   edt.src = '../edit.png'
+   edt.width = 12;
+   edt.height = 12;
+   edt.onmouseover = ()=>{
+    document.body.style.cursor = 'pointer'
+   }
+   edt.onmouseout = ()=>{
+    document.body.style.cursor = 'auto'
+   }
+   edt.onclick = async()=>{
+    if (!canClickShit) return;
+    canClickShit = false;
+    f.removeChild(del)
+    f.removeChild(b)
+    f.removeChild(edt)
+    const edtI = document.createElement('input')
+    edtI.type = 'text';
+    edtI.value = (field=='Novo Campo'?'':field);
+    document.body.style.cursor = 'auto';
+    let block = false;
+    edtI.onkeydown = async(event)=>{
+    if (event.key!=='Enter') return;
+        if (block) return;
+        block = true;
+        if (data.includes(edtI.value)){
+            alert('Já existe um campo com esse nome!');
+            await reload()
+            return;
+        }
+        if (edtI.value.trim().length <1){
+            alert('Campo não pode ser vazio!')
+            await reload()
+            return;
+        }
+        if (edtI.value.length>20){
+            alert('Campo não deve ser maior que 20 caracteres!')
+            await reload();
+            return;
+        }
+        if (edtI.value.includes(',')){
+            alert('Campos não podem incluir vírgula!');
+            await reload()
+            return;
+        }
+        doin = {tid:query.get('id'),fid:data.indexOf(field),fn:edtI.value}
+    }
+    edtI.onblur = async(event)=>{
+        if (block) return;
+        block = true;
+        if (data.includes(edtI.value)){
+            alert('Já existe um campo com esse nome!');
+            await reload()
+            return;
+        }
+        if (edtI.value.length>20){
+            alert('Campo não deve ser maior que 20 caracteres!')
+            await reload();
+            return;
+        }
+        if (edtI.value.trim().length <1){
+            alert('Campo não pode ser vazio!')
+            await reload()
+            return;
+        }
+        if (edtI.value.includes(',')){
+            alert('Campos não podem incluir vírgula!');
+            await reload()
+            return;
+        }
+        doin = {tid:query.get('id'),fid:data.indexOf(field),fn:edtI.value}
+    }
+    f.appendChild(edtI)
+    edtI.focus();
+   }
+   f.appendChild(edt)
+  }
+
+  const b = document.createElement('text')
+  b.innerText = field
+  f.appendChild(b)
+  fields.appendChild(f);
+ }
+ const newfield = document.createElement('td')
+ const newfieldBtn = document.createElement('button')
+ newfieldBtn.innerText = 'Novo Campo'
+
+ newfieldBtn.onclick = async()=>{
+  if (!canClickShit) return;
+  if (data.length==15){
+    if (!confirm('Você está criando uma quantidade grande de campos. Tem certeza que quer prosseguir?'))
+        return;
+  }
+  canClickShit = false;
+  await fetch(`${FetchTarget}/tipoObjetos/${query.get('id')}/field`,{method:'POST',headers:{token:localStorage.getItem('token')}})
+  await reload()
+ }
+
+ newfield.appendChild(newfieldBtn)
+ fields.appendChild(newfield)
+
+ table.append(fields);
+ let i = 0
+ for (const item of cat.children){
+  const row = document.createElement('tr')
+  const data = item.customData.split(',')
+  const num = document.createElement('td')
+  num.innerText = ++i+''
+  row.appendChild(num)
+  const stat = document.createElement('td')
+  stat.innerText = getStatus(item.estado)
+  row.appendChild(stat)
+  for (const index in data){
+   const field = data[index]
+   if (field=='') continue;
+   const f = document.createElement('td')
+   const d = document.createElement('text')
+   d.innerText = field;
+   const ed = document.createElement('img')
+   ed.src = '../edit.png'
+   ed.width = 12;
+   ed.height = 12;
+   ed.onmouseover = ()=>{
+    document.body.style.cursor = 'pointer'
+   }
+   ed.onmouseout = ()=>{
+    document.body.style.cursor = 'auto'
+   }
+   ed.onclick = async()=>{
+    if (!canClickShit) return;
+    canClickShit = false;
+    f.removeChild(d)
+    f.removeChild(ed)
+    const edtI = document.createElement('input')
+    edtI.type = 'text'
+    edtI.value = (field=='(Vazio)'?'':field);
+    document.body.style.cursor = 'auto'
+    edtI.onkeydown = async(event)=>{
+     if (event.key!=='Enter') return;
+     if (edtI.value.includes(',')){
+        alert('Campos não podem incluir vírgula!');
+        return;
+    }
+    if (edtI.value.length>20){
+            alert('Campo não deve ser maior que 20 caracteres!')
+            await reload();
+            return;
+        }
+    if (edtI.value.trim().length <1){
+            alert('Campo não pode ser vazio!')
+            await reload()
+            return;
+        }
+    console.log(item)
+    doinObj = {id:item.ID,fid:index,fv:edtI.value}
+    }
+    edtI.onblur = async(event)=>{
+        if (edtI.value.includes(',')){
+            alert('Campos não podem incluir vírgula!');
+            return;
+        }
+        if (edtI.value.length>20){
+            alert('Campo não deve ser maior que 20 caracteres!')
+            await reload();
+            return;
+        }
+        if (edtI.value.trim().length <1){
+            alert('Campo não pode ser vazio!')
+            await reload()
+            return;
+        }
+        doinObj ={id:item.ID,fid:index,fv:edtI.value}
+    }
+    f.appendChild(edtI)
+    edtI.focus();
+   }
+   f.appendChild(ed)
+   f.appendChild(d)
+   row.appendChild(f);
+  }
+  const delrow = document.createElement('td')
+  const delbtn = document.createElement('button')
+  delbtn.innerText = 'Remover Objeto';
+  delbtn.onclick = async()=>{
+   if (!canClickShit) return;
+   canClickShit = false;
+   if (confirm('Deseja deletar esse objeto?')){
+       await fetch(`${FetchTarget}/objetos/${item.ID}`,{method:'DELETE',headers:{token:localStorage.getItem('token')}})
+       reload()
+    }
+  }
+  delrow.appendChild(delbtn)
+  row.appendChild(delrow)
+  table.appendChild(row)
+ }
+ const newobjRow = document.createElement('tr')
+ const newobjDat = document.createElement('td')
+ const newobjBtn = document.createElement('button')
+ newobjBtn.innerText='Novo Objeto'
+ newobjBtn.onclick = async()=>{
+  if (!canClickShit) return;
+  canClickShit = false;
+  await fetch(`${FetchTarget}/objetos`,{method:'POST',headers:{token:localStorage.getItem('token'),'Content-Type':'application/json'},body:JSON.stringify({id:query.get('id')})})
+  await reload()
+ }
+ newobjDat.appendChild(newobjBtn)
+ newobjRow.appendChild(newobjDat)
+ table.appendChild(newobjRow)
+
+ document.getElementsByClassName('contents')[0].appendChild(table)
+ loading = false;
+}
+await reload()
+</script>

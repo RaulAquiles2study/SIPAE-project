@@ -1,0 +1,95 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* todo layout principal da página */
+.container {
+    display: flex;
+    height: 100vh; 
+    font-family: Arial, sans-serif; 
+}
+
+
+.menu-lateral {
+    width: 250px;
+    background-color: blue;
+    color: white;
+    padding: 20px;
+}
+
+.menu-lateral .pefil {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.menu-lateral .perfil img {
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.menu-lateral ul { 
+    list-style: none;
+    margin-top: 10px;
+}
+
+.menu-lateral li { 
+    margin: 8px 0;
+    cursor: pointer;
+}
+
+/* Parte da área principal da página*/
+.conteudo {
+    flex: 1;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+
+.cabecalho p { 
+    color: #6b83c7;
+    font-size: 14px;
+}
+
+.cabecalho h1 {
+    font-size: 28px;
+}
+
+.pesquisa {
+    width: 100%;
+    padding: 10px;
+    border-radius: 15px;
+    border: none;
+    color: white;
+    font-size: 16px;
+    background-color: #21409a;
+}
+
+/* Parte dos cards linkados */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.card {
+    background-color: white;
+    border: 2px solid #333;
+    border-radius: 10px;
+    overflow: hidden;
+    text-align: left;
+    font-weight: bold;
+}
+
+.card .imagem {
+    height: 100px;
+    background-blend-mode: multiply;
+}
+
+/* Estilo por setor */
+.labs .imagem { background-color: rgba(0, 0, 255, 0.4); }
+.sec .imagem { background-color: rgba(0, 255, 0, 0.4); }
+.rest .imagem { background-color: rgba(0, 255, 255, 0.4); }
+.coz .imagem { background-color: rgba(255, 0, 0, 0.4); }
+.quadra .imagem { background-color: rgba(255, 255, 0, 0.4); }
