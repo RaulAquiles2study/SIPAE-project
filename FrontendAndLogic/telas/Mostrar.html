@@ -14,7 +14,7 @@
 
   <main class="conteudo">
    <header class="cabecalho">
-    <h1>SIPAE</h1>
+    <h1>SETORES</h1>
     <label for="f1">Filtrar por:</label>
       <input id="set" type="checkbox" checked="true"/>Setores 
       <input id="sub" type="checkbox"/>Subsetores
@@ -183,9 +183,9 @@ async function getCategory(item){
  const base = document.createElement('div');
  base.className = 'item'
  const blurb = document.createElement('div');
- blurb.style.backgroundColor = '#f39c12';
- blurb.style.width='20px';
- blurb.style.height='30';
+ blurb.style.background = 'linear-gradient(135deg, #ff8c78, #ff3b19)';
+ blurb.style.width='30px';
+ blurb.style.height='100%';
  blurb.style.borderTopLeftRadius='18px'
  blurb.style.borderBottomLeftRadius='18px'
  base.appendChild(blurb)
@@ -194,7 +194,7 @@ async function getCategory(item){
   img.src = '../edit.png';
   img.width = 32;
   img.height = 32;
-  img.style.marginLeft='25px'
+  img.style.marginLeft='20px'
 
   img.addEventListener('mouseover',()=>{
    document.body.style.cursor = 'pointer';
@@ -314,8 +314,8 @@ async function getSubsector(item){
  const base = document.createElement('div');
  base.className = 'item'
  const blurb = document.createElement('div');
- blurb.style.backgroundColor = '#2ecc71';
- blurb.style.width='20px';
+ blurb.style.background = 'linear-gradient(135deg, #90EE90, #006400)';
+ blurb.style.width='30px';
  blurb.style.height='100%';
  blurb.style.borderTopLeftRadius='18px'
  blurb.style.borderBottomLeftRadius='18px'
@@ -325,7 +325,7 @@ async function getSubsector(item){
   img.src = '../edit.png';
   img.width = 32;
   img.height = 32;
-  img.style.marginLeft='25px'
+  img.style.marginLeft='20px'
 
   img.addEventListener('mouseover',()=>{
    document.body.style.cursor = 'pointer';
@@ -435,8 +435,8 @@ async function getSector(item){
  const base = document.createElement('div');
  base.className = 'item'
  const blurb = document.createElement('div');
- blurb.style.backgroundColor = '#3498db';
- blurb.style.width='20px';
+ blurb.style.background = 'linear-gradient(135deg, #667eea, #2c3e50)';
+ blurb.style.width='30px';
  blurb.style.height='100%';
  blurb.style.borderTopLeftRadius='18px'
  blurb.style.borderBottomLeftRadius='18px'
@@ -446,7 +446,7 @@ async function getSector(item){
   img.src = '../edit.png';
   img.width = 32;
   img.height = 32;
-  img.style.marginLeft='25px'
+  img.style.marginLeft='20px'
 
   img.addEventListener('mouseover',()=>{
    document.body.style.cursor = 'pointer';
