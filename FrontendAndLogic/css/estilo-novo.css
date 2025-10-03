@@ -21,7 +21,7 @@ body {
     width: 140px;
     height: 42px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #00A8FF, #2c3e50);
     border: none;
     color: white;
     font-weight: 600;
@@ -35,12 +35,12 @@ body {
 .botunn:hover{
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    background: linear-gradient(135deg, #764ba2, #667eea);
+    background: linear-gradient(135deg, #00A8FF, #2c3e50);
 }
 
 .item{
     width: 100%;
-    height: 70px;
+    height: 80px;
     min-height: 70px;
     display: flex;
     align-items: center;
@@ -51,19 +51,10 @@ body {
     background: white;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
-    padding: 0 20px;
+    padding: 0px;
     position: relative;
     overflow: hidden;
-}
 
-.item:before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 6px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
 .itemEdit {
@@ -178,7 +169,7 @@ body {
 
 .cabecalho h1 {
     font-size: 2.5rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #2c3e50, #667eea);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -236,7 +227,7 @@ body {
 input[type="checkbox"] {
     margin-right: 8px;
     transform: scale(1.2);
-    accent-color: #667eea;
+    accent-color: #2c3e50;
 }
 
 /* Labels estilizados */
