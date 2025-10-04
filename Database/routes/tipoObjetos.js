@@ -1,5 +1,5 @@
 import database from '../database.js';
-import get from '../stuffGetter.js';
+import get from '../getters/stuffGetter.js';
 
 import { authMiddleware,rankMiddleware } from "../server.js";
 import { Router } from 'express';

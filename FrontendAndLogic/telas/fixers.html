@@ -28,11 +28,66 @@
 <script type="module">
 import {criarSidebar,makeRequest,redirecionar,getUser,getRankString} from '../script.js';
 document.querySelector('.menu-lateral').appendChild(await criarSidebar())
-const data = (await makeRequest('manutencoes',null,'GET',true)).result
-const objs = data.maintenanceObjects;
-console.log(data)
-document.getElementById('totalObjects').innerText = 'Objetos em manutenção: '+data.totalObjects+' objetos'
-document.getElementById('totalMaintenances').innerText = 'Processos de manutenção: '+data.maintenanceServices+' processos'
-document.getElementById('totalCosts').innerText = 'Custo das manutenções atuais: '+data.totalObjectValues+' R$'
 
+async function reload(){
+ const data = (await makeRequest('manutencoes',null,'GET',true)).result
+ console.log(data)
+ const objs = data.maintenanceObjects??[];
+ document.getElementById('totalObjects').innerText = 'Objetos em manutenção: '+data.totalObjects+' objetos'
+ document.getElementById('totalMaintenances').innerText = 'Processos de manutenção: '+data.maintenanceServices+' processos'
+ document.getElementById('totalCosts').innerText = 'Custo das manutenções atuais: '+data.totalObjectValues+' R$'
+ const base = document.querySelector('.cards')
+ for (const man of objs){
+  console.log(man)
+  base.appendChild(await getThingy(man))
+ }
+}
+
+async function getThingy(item){
+ const novoCard = document.createElement('div');
+ novoCard.classList.add('card-personalizado');
+ const novoDiv = document.createElement('div');
+ novoDiv.className = 'conteudo-card';
+
+ const t1 = document.createElement('h2');
+ t1.textContent = item.objType;
+ novoDiv.appendChild(t1);
+
+ const t2 = document.createElement('h5');
+ t2.textContent = item.descricao;
+ novoDiv.appendChild(t2);
+
+ const t3 = document.createElement('h3');
+ t3.textContent = 'Valor: '+item.sumValue;
+ novoDiv.appendChild(t3);
+
+ const t4 = document.createElement('h4');
+ t4.textContent = 'Objetos: '+item.objects.length;
+ novoDiv.appendChild(t4);
+
+ console.log(item.data)
+ const dateobj = new Date(item.data)
+ const t5 = document.createElement('h4');
+ t5.textContent = `Pedido em: ${dateobj.getDate()+1}/${dateobj.getMonth()+1}/${dateobj.getFullYear()}`;
+ novoDiv.appendChild(t5);
+
+ const dateobj2 = new Date(item.retornoEsperado)
+ const t6 = document.createElement('h4');
+ t6.textContent = `Expectativa de entrega em: ${dateobj2.getDate()+1}/${dateobj2.getMonth()+1}/${dateobj2.getFullYear()}`;
+ novoDiv.appendChild(t6);
+
+ const b1 = document.createElement('button')
+ b1.className = 'botunn';
+ b1.innerText = 'Marcar como concluído'
+ b1.onclick = async()=>{
+  await makeRequest('manutencoes',null,'PUT',true,{manID:item.ID})
+  await reload();
+ }
+ novoDiv.appendChild(b1);
+
+ novoCard.appendChild(novoDiv);
+
+ return novoCard;
+}
+await reload();
 </script>
