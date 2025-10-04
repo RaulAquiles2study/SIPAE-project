@@ -18,19 +18,15 @@
   </div>
 </body>
 <script type="module">
-import {FetchTarget,redirecionar} from '../script.js'
+import {makeRequest,redirecionar} from '../script.js'
 localStorage.setItem('token',null)
 async function login(){
  const login = document.getElementById("login").value;
  const senha = document.getElementById("senha").value;
 
- const result = await fetch(`${FetchTarget}/login`,{method:'POST',headers: { 'Content-Type': 'application/json' },body:JSON.stringify({login:login,pass:senha})});
- const resultR = await result.json();
- if (!resultR.ok){
-  return alert('Usuário ou senha inválidos')
- }
+ const resultR = await makeRequest('login',null,'POST',false,{login:login,pass:senha})
 
- localStorage.setItem('token',resultR.token);
+ localStorage.setItem('token',resultR.result);
 
  redirecionar('Mostrar',{filtros:7});
 }

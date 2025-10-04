@@ -1,13 +1,43 @@
 export const FetchTarget = 'http://localhost:3000'
 
+export async function makeRequest(path,query,method,useToken,body,headers){
+ const hasBody = body!=null
+ let querystr = ''
+ if (query){
+  querystr = '?';
+  for (const item of Object.keys(query)){
+   querystr+=item+'='+query[item]+'&'
+  }
+  querystr = querystr.slice(0,querystr.length-1);
+ }
+ try{
+  const resultU = await fetch(`${FetchTarget}/${path}${querystr}`,
+   {method:method??'GET',
+    headers:{
+   ...(useToken?{token:localStorage.getItem('token')}:{}),
+   ...(hasBody?{'Content-Type':'application/json'}:{}),
+   ...(headers??{})
+    },
+   ...(hasBody?{body:JSON.stringify(body)}:{})
+   });
+  const response = await resultU.json();
+  if (!response.ok){//because sometimes I don't include a true ok on success, but always false on error
+   alert(response.error)
+  }
+  return response
+ }
+ catch(e){
+  alert(e);
+  return null
+ }
+}
+
 export async function getUser(){
- const user = await fetch(`${FetchTarget}/users`,{headers:{token:localStorage.getItem('token')}});
- const userJson = await user.json();
+ const userJson = await makeRequest('users',null,'GET',true)
  if (!userJson.ok){
-  alert('Acesso Inválido!')
   redirecionar('index')
  }
- return userJson.user
+ return userJson.result
 }
 export function getRankString(num){
  switch (num){
@@ -50,7 +80,7 @@ export async function criarSidebar(){
  
  const infoList = document.createElement('ul');
 
- const infoListItems = [{name:'Setores',file:'Mostrar'},{name:'Usuários',file:'users',rank:4},{name:'Informações',file:'infos'},{name:'Objetivos',file:'objectives'},{name:'Sobre',file:'about'},{name:'Logout',file:'index'}]
+ const infoListItems = [{name:'Setores',file:'Mostrar'},{name:'Usuários',file:'users',rank:4},{name:'Histórico de uso',file:'registry',rank:4},{name:'Manutenção',file:'fixers'},{name:'Logout',file:'index'}]
 
  for (let i=0;i<infoListItems.length;i++){
   const o = infoListItems[i];

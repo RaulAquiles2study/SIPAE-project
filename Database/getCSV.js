@@ -6,29 +6,26 @@ function getStatus(s){
   case 2:return 'Quebrado'
  }
 }
-async function parseData(data,secName,subName,objName){
+async function parseData(data,secn,subn,objn){
  let str = ''
  let i = 0;
-
- let sn = secName??'';
- let sun = subName??'';
- let on = objName??'';
- 
+ let sn = secn??''
+ let sun = subn??''
+ let on = objn??''
  for(const item of data){
   switch(item.type){
    case 0:
     sn = item.name;
-    str += `${sn}`
+    str += `${sn};${item.name}`
     break;
    case 1:
     sun = item.name;
-    str += `${sn};${sun}`
+    str += `${sn};${sun};${item.name}`
     break;
    case 2:{
     on = item.name;
-    str += `${sn};${sun};${on};#;Status`
+    str += `${sn};${sun};${on};${item.name};#;Status`
     const data = await get.categoryInfo(item.ID)
-    console.log(data)
     for (const field of data.custom){
      str+=`;${field}`
     }
@@ -39,7 +36,7 @@ async function parseData(data,secName,subName,objName){
    }
    case 3:{
     i++
-    str += `${sn};${sun};${on};${i};${getStatus(item.estado)}`
+    str += `;;;;${i};${getStatus(item.estado)}`
     const dataArray = item.custom
     for (const field of dataArray){
      str+=`;${field}`
@@ -49,7 +46,7 @@ async function parseData(data,secName,subName,objName){
   }
   str += '\n'
   if (item.children.length>0)
-   str += await parseData(item.children,sn,sun,on)
+   str += await parseData(item.children,sn,sun,on);
   if (item.type ==2)str+='\n'
  }
  return str;
@@ -57,5 +54,5 @@ async function parseData(data,secName,subName,objName){
 
 export default async ()=>{
  const data = await get.all(0b1111,{});
- return 'SETOR;SUBSETOR;OBJETO\n'+ (await parseData(data));
+ return await 'Setor;Subsetor;Objeto\n'+parseData(data);
 }

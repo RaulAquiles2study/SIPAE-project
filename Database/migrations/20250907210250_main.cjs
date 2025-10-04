@@ -8,13 +8,11 @@ exports.up = async function(knex) {
   table.increments('ID').primary().notNullable();
   table.string('name').notNullable().defaultTo('Novo Setor');
  })
- await knex.schema
  .createTable('subSetores',table=>{
   table.increments('ID').primary().notNullable();
   table.string('name').notNullable().defaultTo('Novo Subsetor');
   table.integer('sid').notNullable().references('ID').inTable('setores').onDelete('CASCADE')
  })
- await knex.schema
  .createTable('tipoObjetos',table=>{
   table.increments('ID').primary().notNullable();
   table.string('name').notNullable().defaultTo('Nova Categoria');
@@ -22,22 +20,40 @@ exports.up = async function(knex) {
   table.integer('suid').references('ID').inTable('subSetores').onDelete('CASCADE');
   table.string('customData').defaultTo('');
  })
- await knex.schema
  .createTable('objetos',table=>{
   table.increments('ID').primary().notNullable();
   table.integer('tid').notNullable().references('ID').inTable('tipoObjetos').onDelete('CASCADE');
   table.integer('estado').notNullable().defaultTo(0);
-  table.float('custo').notNullable().defaultTo(0);
+  table.float('valor').notNullable().defaultTo(0);
   table.string('customData').defaultTo('');
  })
- await knex.schema
  .createTable('users',table=>{
   table.increments('UID').primary().notNullable();
   table.string('nome').notNullable();
   table.string('email').notNullable();
   table.string('senha').notNullable();
   table.integer('rank').defaultTo(1);
- });
+ })
+ .createTable('useRegister',table=>{
+  table.increments('ID').primary().notNullable();
+  table.string('user').notNullable();
+  table.string('useremail').notNullable();
+  table.string('acao').notNullable();
+  table.dateTime('data').notNullable();
+ })
+ .createTable('manutencaoLinks',table=>{
+  table.increments('ID').primary();
+  table.integer('objetoID').notNullable();
+  table.integer('manutencaoID').notNullable();
+ })
+ .createTable('manutencoes',table=>{
+  table.increments('ID').primary();
+  table.boolean('concluido').defaultTo(false);
+  table.date('data').notNullable();
+  table.date('retornoEsperado').notNullable();
+  table.float('valor').notNullable();
+  table.float('tipoObjetoID').notNullable();
+  });
 };
 
 /**
@@ -50,5 +66,8 @@ exports.down = async function(knex) {
   .dropTable('objetos')
   .dropTable('tipoObjetos')
   .dropTable('subSetores')
-  .dropTable('setores');
+  .dropTable('setores')
+  .dropTable('useRegister')
+  .dropTable('manutencoes')
+  .dropTable('manutencaoLinks')
 };

@@ -26,12 +26,11 @@
 </body>
 </html>
 <script type="module">
-import {criarSidebar,FetchTarget,redirecionar,getUser} from '../script.js'
+import {criarSidebar,makeRequest,redirecionar,getUser} from '../script.js'
 document.querySelector('.menu-lateral').appendChild(await criarSidebar())
 let canClickShit = true;
 const query = new URLSearchParams(window.location.search);
-const userU = await fetch(`${FetchTarget}/users`,{headers:{token:localStorage.getItem('token')}});
-const user = (await userU.json()).user;
+const user = await getUser()
 
 function getStatus(s){
  switch (s) {
@@ -40,28 +39,51 @@ function getStatus(s){
   case 2:return 'Quebrado';
  }
 }
-let doin = {}
+let selection = new Set();
+
+let doinField = {}
 let doinObj = {}
+let doinMain = {}
+let doinDel = {}
+let doinCost = {}
 async function edit(){
     let did = false;
-    if (Object.keys(doin).length>0){
-        await fetch(`${FetchTarget}/tipoObjetos/field`,{method:'PUT',body:JSON.stringify(doin),headers:{token:localStorage.getItem('token'),'Content-Type':'application/json'}})
-        doin = {}
+    if (Object.keys(doinField).length>0){
+     console.log(doinField)
+        makeRequest('tipoObjetos/field',null,'PUT',true,doinField)
+        doinField = {}
         did = true
     }
     if (Object.keys(doinObj).length>0){
-        await fetch(`${FetchTarget}/objetos/field`,{method:'PUT',body:JSON.stringify(doinObj),headers:{token:localStorage.getItem('token'),'Content-Type':'application/json'}})
+        makeRequest('objetos/field',null,'PUT',true,doinObj)
         doinObj = {}
         did = true
     }
-    if (did)
-        await reload()
+    if (Object.keys(doinMain).length>0){
+     makeRequest('manutencoes',null,'POST',true,doinMain)
+     doinMain = {};
+     did = true;
+    }
+    if (Object.keys(doinDel).length>0){
+     makeRequest('objetos',{selection:doinDel.selection},'DELETE',true)
+     doinDel = {};
+     did = true;
+    }
+    if (Object.keys(doinCost).length>0){
+     makeRequest('objetos/cost',null,'PUT',true,doinCost)
+     doinCost = {};
+     did = true;
+    }
+    if (did){
+     await reload()
+    }
 }
 setInterval(edit,100);
 let loading = false;
 async function reload(){
-    if (loading) return;
-    loading = true;
+ if (loading) return;
+ bgDiv.style.display = 'none';
+ loading = true;
  canClickShit = true;
  try{
   document.getElementsByClassName('contents')[0].removeChild(document.getElementsByClassName('tabela')[0])
@@ -69,16 +91,20 @@ async function reload(){
  const table = document.createElement('table');
  table.className = 'tabela'
  const fields = document.createElement('tr');
- const catU = await fetch(`${FetchTarget}/category/${query.get('id')}`)
- const cat = await catU.json();
- console.log(cat)
+ const cat = (await makeRequest('tipoObjetos/'+query.get('id'))).result
  document.getElementById('bleh').innerText = cat.name
+ const sel = document.createElement('td')
+ sel.innerText = 'Seleção'
+ fields.appendChild(sel)
  const num = document.createElement('td')
  num.innerText = '#'
  fields.appendChild(num)
  const stat = document.createElement('td')
  stat.innerText = 'Status'
  fields.appendChild(stat)
+ const val = document.createElement('td')
+ val.innerText = 'Valor Unitário'
+ fields.appendChild(val)
  const data = String(cat.customData).split(',')
 
  for (const field of data){
@@ -87,8 +113,8 @@ async function reload(){
   if (user.rank>4){
    const del = document.createElement('img')
    del.src = '../delete.png'
-   del.width = 12;
-   del.height = 12;
+   del.width = 20;
+   del.height = 20;
    del.onmouseover = ()=>{
     document.body.style.cursor = 'pointer'
    }
@@ -98,17 +124,17 @@ async function reload(){
    del.onclick = async()=>{
     if (!canClickShit) return;
     canClickShit = false;
-    if (confirm('Gostaria de deletar esse campo?')){
-        await fetch(`${FetchTarget}/tipoObjetos/${query.get('id')}/field/${data.indexOf(field)}`,{headers:{token:localStorage.getItem('token')},method:'DELETE'})
+    if (confirm('Gostaria de deletar esse campo?'))
+        await makeRequest(`tipoObjetos/${query.get('id')}/field/${data.indexOf(field)}`,null,'DELETE',true)
+
         await reload()
-    }
     document.body.style.cursor = 'auto'
    }
    f.appendChild(del)
    const edt = document.createElement('img')
    edt.src = '../edit.png'
-   edt.width = 12;
-   edt.height = 12;
+   edt.width = 20;
+   edt.height = 20;
    edt.onmouseover = ()=>{
     document.body.style.cursor = 'pointer'
    }
@@ -150,7 +176,7 @@ async function reload(){
             await reload()
             return;
         }
-        doin = {tid:query.get('id'),fid:data.indexOf(field),fn:edtI.value}
+        doinField = {tid:query.get('id'),fid:data.indexOf(field),fn:edtI.value}
     }
     edtI.onblur = async(event)=>{
         if (block) return;
@@ -175,7 +201,7 @@ async function reload(){
             await reload()
             return;
         }
-        doin = {tid:query.get('id'),fid:data.indexOf(field),fn:edtI.value}
+        doinField = {tid:query.get('id'),fid:data.indexOf(field),fn:edtI.value}
     }
     f.appendChild(edtI)
     edtI.focus();
@@ -190,6 +216,7 @@ async function reload(){
  }
  const newfield = document.createElement('td')
  const newfieldBtn = document.createElement('button')
+ newfieldBtn.type = 'button';
  newfieldBtn.innerText = 'Novo Campo'
 
  newfieldBtn.onclick = async()=>{
@@ -199,7 +226,7 @@ async function reload(){
         return;
   }
   canClickShit = false;
-  await fetch(`${FetchTarget}/tipoObjetos/${query.get('id')}/field`,{method:'POST',headers:{token:localStorage.getItem('token')}})
+  await makeRequest(`tipoObjetos/${query.get('id')}/field`,null,'POST',true)
   await reload()
  }
 
@@ -207,16 +234,213 @@ async function reload(){
  fields.appendChild(newfield)
 
  table.append(fields);
+ 
+ await generateObjects(cat.children,table);
+
+ const newObjRow = document.createElement('tr')
+ const newObjDat = document.createElement('td')
+ const newObjBtn = document.createElement('button')
+ newObjBtn.type = 'button';
+ newObjBtn.innerText='Novo Objeto'
+ newObjBtn.onclick = async()=>{
+  if (!canClickShit) return;
+  canClickShit = false;
+
+  await makeRequest('objetos',null,'POST',true,{id:query.get('id')})
+  await reload()
+ }
+ newObjDat.appendChild(newObjBtn)
+ newObjRow.appendChild(newObjDat)
+
+ const delObjDat = document.createElement('td')
+ const delObjBtn = document.createElement('button')
+ delObjBtn.type = 'button';
+ delObjBtn.innerText='Deletar Objeto'
+ delObjBtn.onclick = async()=>{
+  if (!canClickShit) return;
+  canClickShit = false;
+  const selects = Array.from(selection)
+  if (selects.length<1){
+   alert('Por favor, selecione ao menos um objeto')
+   await reload();
+   return;
+  }
+  if (confirm(`Gostaria de deletar ${selects.length>1?'esses objetos':'esse objeto'}?`))
+   doinDel = {selection:Array.from(selection).join(',')}
+  else
+   await reload();
+ }
+ delObjDat.appendChild(delObjBtn)
+ newObjRow.appendChild(delObjDat)
+ 
+ const manObjDat = document.createElement('td')
+ const manObjBtn = document.createElement('button')
+ manObjBtn.type = 'button';
+ manObjBtn.innerText='Enviar à Manutenção'
+ manObjBtn.onclick = async()=>{
+  if (!canClickShit) return;
+  canClickShit = false;
+  const selects = Array.from(selection)
+  if (selects.length<1){
+   alert('Por favor, selecione ao menos um objeto')
+   await reload();
+   return;
+  }
+  bgDiv.style.display='flex'
+ }
+ manObjDat.appendChild(manObjBtn)
+ newObjRow.appendChild(manObjDat)
+
+ table.appendChild(newObjRow)
+
+ document.getElementsByClassName('contents')[0].appendChild(table)
+ loading = false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function generateObjects(objs,table){
  let i = 0
- for (const item of cat.children){
+ for (const item of objs){
   const row = document.createElement('tr')
   const data = item.customData.split(',')
+  const sel = document.createElement('td')
+  const checky = document.createElement('input')
+  checky.type = 'checkbox'
+  checky.checked = selection.has(item.ID)
+  checky.style.width = '30px'
+  checky.style.height = '30px'
+  checky.onchange = ()=>{
+   if (checky.checked)
+    selection.add(item.ID);
+   else
+    selection.delete(item.ID);
+  }
+  sel.appendChild(checky)
+  row.appendChild(sel)
+
   const num = document.createElement('td')
   num.innerText = ++i+''
   row.appendChild(num)
+
   const stat = document.createElement('td')
-  stat.innerText = getStatus(item.estado)
+  const statSelect = document.createElement('select')
+  const o0 = document.createElement('option');
+  const o1 = document.createElement('option');
+  const o2 = document.createElement('option');
+  o0.innerText = 'Manutenção';
+  o0.disabled = true;
+  o0.hidden = true;
+  o1.innerText = 'Disponível';
+  o2.innerText = 'Quebrado';
+  statSelect.appendChild(o1)
+  statSelect.appendChild(o2)
+  statSelect.appendChild(o0)
+  statSelect.value = getStatus(item.estado)
+  statSelect.onchange = async()=>{
+   if (statSelect.selectedIndex==0)
+    await makeRequest('objetos/state',null,'PUT',true,{id:item.ID,np:0})
+   else
+    await makeRequest('objetos/state',null,'PUT',true,{id:item.ID,np:2})
+   await reload();
+  }
+  stat.appendChild(statSelect);
   row.appendChild(stat)
+  const valImg = document.createElement('img')
+  const val = document.createElement('td')
+  valImg.src = '../edit.png';
+  valImg.width = 20;
+  valImg.height = 20;
+
+  valImg.onclick = async()=>{
+    if (!canClickShit) return;
+    canClickShit = false;
+    val.removeChild(valImg)
+    val.removeChild(valTxt)
+    const edtI = document.createElement('input')
+    edtI.type = 'text'
+    edtI.value = (item.valor==0?'':item.valor).toString()
+    document.body.style.cursor = 'auto'
+    edtI.oninput = ()=>{
+      edtI.value = edtI.value.replace(',','.')
+      edtI.value = edtI.value.replace(/[^\d\.]+/g,'')
+      edtI.value = edtI.value.replace(/(.*\..*)([^\d])+/g,'$1')
+    }
+    let doin = false
+    edtI.onkeydown = async(event)=>{
+     if (event.key!=='Enter' || doin) return;
+     doin = true;
+     if (edtI.value.trim().length <1){
+      alert('Valor não pode ser vazio!')
+      await reload()
+      return;
+     }
+     const val = parseFloat(edtI.value)
+     if (val>10000000000){
+      alert('Valor não pode ser maior que 10000000000!')
+      await reload();
+      return;
+     }
+     if (val<1){
+      alert('Valor não pode ser menor que 1!')
+      await reload();
+      return;
+     }
+     doinCost = {id:item.ID,valor:parseFloat(edtI.value)}
+    }
+    edtI.onblur = async(event)=>{
+     if (doin) return;
+     doin = true;
+     if (edtI.value.trim().length <1){
+      alert('Valor não pode ser vazio!')
+      await reload()
+      return;
+     }
+     const val = parseFloat(edtI.value)
+     if (val>10000000000){
+      alert('Valor não pode ser maior que 10000000000!')
+      await reload();
+      return;
+     }
+     if (val<1){
+      alert('Valor não pode ser menor que 1!')
+      await reload();
+      return;
+     }
+     doinCost = {id:item.ID,valor:parseFloat(edtI.value)}
+    }
+    val.appendChild(edtI)
+    edtI.focus();
+   }
+
+  valImg.onmouseover = ()=>{
+   document.body.style.cursor = 'pointer'
+  }
+  valImg.onmouseout = ()=>{
+   document.body.style.cursor = 'auto'
+  }
+
+  val.appendChild(valImg);
+
+  const valTxt = document.createElement('text');
+  valTxt.innerText = (item.valor??0)+' R$';
+  val.appendChild(valTxt);
+  console.log(item)
+
+  row.appendChild(val)
   for (const index in data){
    const field = data[index]
    if (field=='') continue;
@@ -225,8 +449,8 @@ async function reload(){
    d.innerText = field;
    const ed = document.createElement('img')
    ed.src = '../edit.png'
-   ed.width = 12;
-   ed.height = 12;
+   ed.width = 20;
+   ed.height = 20;
    ed.onmouseover = ()=>{
     document.body.style.cursor = 'pointer'
    }
@@ -246,6 +470,7 @@ async function reload(){
      if (event.key!=='Enter') return;
      if (edtI.value.includes(',')){
         alert('Campos não podem incluir vírgula!');
+        await reload();
         return;
     }
     if (edtI.value.length>20){
@@ -258,7 +483,6 @@ async function reload(){
             await reload()
             return;
         }
-    console.log(item)
     doinObj = {id:item.ID,fid:index,fv:edtI.value}
     }
     edtI.onblur = async(event)=>{
@@ -285,37 +509,123 @@ async function reload(){
    f.appendChild(d)
    row.appendChild(f);
   }
-  const delrow = document.createElement('td')
-  const delbtn = document.createElement('button')
-  delbtn.innerText = 'Remover Objeto';
-  delbtn.onclick = async()=>{
-   if (!canClickShit) return;
-   canClickShit = false;
-   if (confirm('Deseja deletar esse objeto?')){
-       await fetch(`${FetchTarget}/objetos/${item.ID}`,{method:'DELETE',headers:{token:localStorage.getItem('token')}})
-       reload()
-    }
-  }
-  delrow.appendChild(delbtn)
-  row.appendChild(delrow)
   table.appendChild(row)
  }
- const newobjRow = document.createElement('tr')
- const newobjDat = document.createElement('td')
- const newobjBtn = document.createElement('button')
- newobjBtn.innerText='Novo Objeto'
- newobjBtn.onclick = async()=>{
-  if (!canClickShit) return;
-  canClickShit = false;
-  await fetch(`${FetchTarget}/objetos`,{method:'POST',headers:{token:localStorage.getItem('token'),'Content-Type':'application/json'},body:JSON.stringify({id:query.get('id')})})
-  await reload()
- }
- newobjDat.appendChild(newobjBtn)
- newobjRow.appendChild(newobjDat)
- table.appendChild(newobjRow)
-
- document.getElementsByClassName('contents')[0].appendChild(table)
- loading = false;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const bgDiv = document.createElement('div')
+bgDiv.style.display='none';
+bgDiv.className = 'modalBG';
+
+const modalDiv = document.createElement('div')
+modalDiv.className = 'modalWindow';
+
+const f = document.createElement('form')
+
+const valLabel = document.createElement('label')
+valLabel.htmlFor = 'val'
+valLabel.innerText = 'Valor da manutenção';
+
+f.appendChild(valLabel);
+
+const valInput = document.createElement('input')
+valInput.name = 'val';
+valInput.placeholder = 'Valor...'
+f.appendChild(valInput)
+valInput.oninput = ()=>{
+ valInput.value = valInput.value.replace(',','.')
+ valInput.value = valInput.value.replace(/[^\d\.]+/g,'')
+ valInput.value = valInput.value.replace(/(.*\..*)([^\d])+/g,'$1')
+}
+
+const datLabel = document.createElement('label')
+datLabel.htmlFor = 'dat'
+datLabel.innerText = 'Data esperada de manutenção';
+
+f.appendChild(datLabel);
+
+const dateInput = document.createElement('input')
+dateInput.name = 'dat'
+dateInput.type = 'date';
+f.appendChild(dateInput)
+
+const brow = document.createElement('div')
+brow.className = 'buttonRow'
+
+const cancel = document.createElement('button');
+cancel.className = 'botunn';
+cancel.type = 'button';
+cancel.innerText = 'cancelar';
+cancel.addEventListener('click',async (event)=>{
+ event.preventDefault();
+ bgDiv.style.display = 'none';
+ valInput.value=''
+ dateInput.value=''
+ await reload();
+})
+brow.appendChild(cancel);
+
+const confurm = document.createElement('button');
+confurm.type = 'button';
+confurm.className = 'botunn';
+confurm.innerText = 'Confirmar';
+confurm.addEventListener('click',async (event)=>{
+ event.preventDefault();
+ if (valInput.value==''){
+  alert('Valor não pode ser vazio!')
+  await reload();
+  return;
+ }
+ const val = parseFloat(valInput.value)
+ if (val<1){
+  alert('Valor não pode menor que 1!')
+  await reload();
+  return;
+ }
+ if (!dateInput.valueAsDate){
+  alert('Data inválida!')
+  await reload();
+  return;
+ }
+ if (dateInput.valueAsDate.getTime()<new Date().getTime()){
+  alert('Data não pode estar no passado!')
+  await reload();
+  return;
+ }
+ bgDiv.style.display = 'none';
+ doinMain = {objIDs:Array.from(selection),value:parseInt(valInput.value),data:dateInput.valueAsDate}
+})
+brow.appendChild(confurm);
+
+f.appendChild(brow)
+modalDiv.appendChild(f)
+modalDiv.addEventListener('click',(event)=>{
+ event.stopPropagation();
+})
+
+bgDiv.appendChild(modalDiv)
+
+bgDiv.onclick = async()=>{
+ bgDiv.style.display = 'none';
+ valInput.value=''
+ dateInput.value=''
+ await reload();
+}
+
+document.querySelector('.container').appendChild(bgDiv)
 await reload()
 </script>

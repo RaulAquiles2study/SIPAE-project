@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manutenções</title>
+    <link rel="stylesheet" href="../css/estilo-novo.css"/>
+    <link rel="stylesheet" href="../css/estilo-materiais.css"/>
+</head>
+<body>
+    <div class="container">
+        <aside class="menu-lateral"></aside>
+
+        <main class="conteudo">
+            <header class="cabecalho">
+                <h1>Manutenções</h1>
+                <p id="totalObjects"></p>
+                <p id="totalMaintenances"></p>
+                <p id="totalCosts"></p>
+            </header>
+
+            <section class="cards"></section>
+        </main>
+    </div>
+    <script type="module" src="../script.js"></script>
+</body>
+</html>
+<script type="module">
+import {criarSidebar,makeRequest,redirecionar,getUser,getRankString} from '../script.js';
+document.querySelector('.menu-lateral').appendChild(await criarSidebar())
+const data = (await makeRequest('manutencoes',null,'GET',true)).result
+const objs = data.maintenanceObjects;
+console.log(data)
+document.getElementById('totalObjects').innerText = 'Objetos em manutenção: '+data.totalObjects+' objetos'
+document.getElementById('totalMaintenances').innerText = 'Processos de manutenção: '+data.maintenanceServices+' processos'
+document.getElementById('totalCosts').innerText = 'Custo das manutenções atuais: '+data.totalObjectValues+' R$'
+
+</script>

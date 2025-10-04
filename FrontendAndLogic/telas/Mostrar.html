@@ -23,16 +23,16 @@
     <input type="text" id="p1" class="pesquisa" placeholder="Pesquisar por setor..."/>
     <input type="text" id="p2" class="pesquisa" placeholder="Pesquisar por subsetor..."/>
     <input type="text" id="p3" class="pesquisa" placeholder="Pesquisar por tipo de objeto..."/>
-    <button class='botunn' id="rel">Gerar Relatório</button>
+    <button class='botunn' type="button" id="rel">Gerar Relatório</button>
    </header>
 
    <div class="contents"></div>
    <div class="footButtons">
-    <button class='botunn' id='allbck'><<</button>
-    <button class='botunn' id='bck'><</button>
+    <button class='botunn' type="button" id='allbck'><<</button>
+    <button class='botunn' type="button" id='bck'><</button>
     <b id='showin'></b>
-    <button class='botunn' id='fwd'>></button>
-    <button class='botunn' id='allfwd'>>></button>
+    <button class='botunn' type="button" id='fwd'>></button>
+    <button class='botunn' type="button" id='allfwd'>>></button>
    </div>
   </main>
  </div>
@@ -41,45 +41,49 @@
 </html>
 
 <script type="module">
-import {criarSidebar,FetchTarget,redirecionar,getUser} from '../script.js';
+import {criarSidebar,makeRequest,redirecionar,getUser} from '../script.js';
 let canPressShit = true;
 document.querySelector('.menu-lateral').appendChild(await criarSidebar())
-const userU = await fetch(`${FetchTarget}/users`,{headers:{token:localStorage.getItem('token')}});
-const user = (await userU.json()).user;
+const user = await getUser()
 let curFilter = 0;
 
 let send = {}
 let sendType = 0;
 
+document.addEventListener("submit", (e) => {
+  e.preventDefault();
+  console.warn("A form tried to submit!", e.target);
+});
+
 async function edit(){
   if (Object.keys(send).length>0){
-    console.log('sending bleh')
-    if (sendType==0)
-    await fetch(`${FetchTarget}/setores`,{method:'PUT',headers: { 'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify(send)});
-    if(sendType==1)
-    await fetch(`${FetchTarget}/subsetores`,{method:'PUT',headers: { 'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify(send)});
-    if(sendType==2){
-      await fetch(`${FetchTarget}/tipoObjetos`,{method:'PUT',headers: { 'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify(send)});
-    }
+    const newsend = send
     send = {}
-    await reload();
+    if (sendType==0)
+      makeRequest('setores',null,'PUT',true,newsend)
+    if(sendType==1)
+      makeRequest('subsetores',null,'PUT',true,newsend)
+    if(sendType==2){
+      makeRequest('tipoObjetos',null,'PUT',true,newsend)
+    }
+    await reload()
+    sendType=-1
   }
 }
 setInterval(edit,100)
 
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-console.log(user)
-if (user.rank >=5){
+if (user.rank >= 4){
  const btnSect = document.createElement('button');
  btnSect.innerText = 'Novo Setor';
  btnSect.className = 'botunn';
- btnSect.onclick = async()=>{
+ btnSect.type = 'button'
+ btnSect.addEventListener('click', async(event)=>{
+  event.preventDefault()
   if(!canPressShit)return;
   canPressShit = false
-  await fetch(`${FetchTarget}/setores`,{method:'POST',headers:{token:localStorage.getItem('token')}});
+  await makeRequest('setores',null,'POST',true)
   await reload();
- }
+ })
  document.querySelector('.cabecalho').appendChild(btnSect);
 }
 
@@ -88,7 +92,6 @@ async function recalcFilters(){
  if (document.getElementById('typ').checked){curFilter+=4}//add 0010
  if (document.getElementById('sub').checked){curFilter+=2}//add 0100
  if (document.getElementById('set').checked){curFilter+=1}//add 1limit000
- console.log(curFilter)
  localStorage.setItem('curFilter',curFilter);
  await reload()
 }
@@ -110,10 +113,9 @@ async function reload(){
  if (r2.length>0) params.append('sub',r2)
  if (r3.length>0) params.append('cat',r3)
 
- const querystring = params.toString();
+ const queryString = params.toString();
 
- const resU = await fetch(`${FetchTarget}/getStuff${querystring ? '?' + querystring : ''}`,{headers:{filter:curFilter}});
- const res = await resU.json();
+ const res = (await makeRequest('getStuff',queryString,'GET',false,null,{filter:curFilter})).result
 
  const curScroll = window.scrollY;
 
@@ -138,37 +140,37 @@ function flattenList(list,level){
   return newlist;
 }
 async function getStuff(base,contents){
-  if (contents.length<1)return;
+ const items = flattenList(contents,0)
+ if (items.length<1)return;
+ console.log(items)
+ showing = 0;
+ i = page*limit;
+ if (i >= items.length) 
+  i = (--page*limit)
 
-  const items = flattenList(contents,0)
-  i = page*limit;
-  showing = 0;
-  if (i >= items.length) {i=(--page*limit)}
-  const firstItem = items[page*limit]
-  totalLen = items.length
-  //not sector or subsector
-  if (firstItem!=null)
-  if (firstItem.type>1){
+ const firstItem = items[i]
+ totalLen = items.length
+ //not sector or subsector
+ if (firstItem!=null)
+  if (firstItem.type>1&&(curFilter&1==1??curFilter&2==2)){
     let search = page*limit
     let item = firstItem
     while (item.type>1&&search>=0){
       item = items[--search];
-      if (item.type<2){
+      if (item.type<firstItem.type){
         base.appendChild(await getThingy(item))
         break;
       }
     }
   }
 
-  console.log(i)
-  console.log((page*limit)+limit)
-  while (i<((page*limit)+limit)&&i<items.length) {
-    const item = items[i];
-    const thingy = await getThingy(item)
-    base.appendChild(thingy)
-    i++
-    showing++
-  }
+ while (i<((page*limit)+limit)&&i<items.length) {
+   const item = items[i];
+   const thingy = await getThingy(item)
+   base.appendChild(thingy)
+   i++
+   showing++
+ }
 }
 async function getThingy(item){
   let blh
@@ -179,6 +181,25 @@ async function getThingy(item){
   blh.style.width = (100-(3*item.level))+('%')
   return blh
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 async function getCategory(item){
  const base = document.createElement('div');
  base.className = 'item'
@@ -217,16 +238,18 @@ async function getCategory(item){
    document.body.style.cursor = 'auto';
   });
 
-  img2.onclick = async () =>{
+  img2.onclick = async (event) =>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
    if (confirm('Gostaria de apagar '+item.name+'?'))
-    await (await fetch(`${FetchTarget}/tipoObjetos/`+item.ID,{method:'DELETE',headers:{token:localStorage.getItem('token')}})).json();
+    await makeRequest('tipoObjetos/'+item.ID,null,'DELETE',true)
    await reload();
   }
 
-  img.onclick = ()=>{
+  img.onclick = (event)=>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
    base.classList.add('editing');
    document.body.style.cursor = 'auto';
@@ -240,7 +263,8 @@ async function getCategory(item){
    editStr.value = (name.innerText=='Novo tipo de objeto'?'':name.innerText);
    let block = false;
    editStr.addEventListener('keydown', async (event)=>{
-     if (event.key!=='Enter') return;
+    if (event.key!=='Enter') return;
+    event.preventDefault()
     if (block) return;
     block = true;
     if (editStr.value.length>40){
@@ -258,6 +282,7 @@ async function getCategory(item){
     send = {id:item.ID,nm:editStr.value};
    });
    editStr.addEventListener('blur', async (event)=>{
+     event.preventDefault()
     if (block) return;
     block = true;
     if (editStr.value.length>40){
@@ -294,8 +319,9 @@ async function getCategory(item){
    document.body.style.cursor = 'auto';
   });
 
-  img3.onclick = async () =>{
+  img3.onclick = async (event) =>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
    redirecionar('Objetos',{id:item.ID})
    document.body.style.cursor = 'auto';
@@ -348,26 +374,30 @@ async function getSubsector(item){
    document.body.style.cursor = 'auto';
   });
 
-  img2.onclick = async () =>{
+  img2.onclick = async (event) =>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
    if (confirm('Gostaria de apagar '+item.name+'?'))
-   await fetch(`${FetchTarget}/subsetores/`+item.ID,{method:'DELETE',headers:{token:localStorage.getItem('token')}});
+    await makeRequest('subsetores/'+item.ID,null,'DELETE',true)
    await reload();
   }
 
   const objBtn = document.createElement('button');
   objBtn.innerText = 'Novo Tipo de Objeto'
   objBtn.className = 'botunn';
-  objBtn.onclick = async()=>{
+  objBtn.type = 'button'
+  objBtn.onclick = async(event)=>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
-   await(await fetch(`${FetchTarget}/tipoObjetos`,{method:'POST',headers:{'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify({id:item.ID,isSub:true})})).json();
+   await makeRequest('tipoObjetos',null,'POST',true,{id:item.ID,isSub:true})
    await reload();
   }
 
-  img.onclick = ()=>{
+  img.onclick = (event)=>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
    base.classList.add('editing');
    document.body.style.cursor = 'auto';
@@ -381,7 +411,8 @@ async function getSubsector(item){
    editStr.value = (name.innerText=='Novo Subsetor'?'':name.innerText);
    let block = false;
    editStr.addEventListener('keydown', async (event)=>{
-     if (event.key!=='Enter') return;
+    if (event.key!=='Enter') return;
+    event.preventDefault()
     if (block) return;
     block = true;
     if (editStr.value.length>40){
@@ -399,6 +430,7 @@ async function getSubsector(item){
     send = {id:item.ID,snm:editStr.value}
    });
    editStr.addEventListener('blur', async (event)=>{
+     event.preventDefault()
     if (block) return;
     block = true;
     if (editStr.value.length>40){
@@ -469,38 +501,44 @@ async function getSector(item){
    document.body.style.cursor = 'auto';
   });
 
-  img2.onclick = async () =>{
+  img2.onclick = async (event) =>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
    if (confirm('Gostaria de apagar '+item.name+'?'))
-   await fetch(`${FetchTarget}/setores/`+item.ID,{method:'DELETE',headers:{token:localStorage.getItem('token')}});
+    await makeRequest('setores/'+item.ID,null,'DELETE',true)
    await reload();
   }
 
-  const ty = (await(await fetch(`${FetchTarget}/sector/childType/`+item.ID)).json()).result
+  const ty = (await makeRequest('sector/childType/'+item.ID)).result
   const subBtn = document.createElement('button');
   subBtn.innerText = 'Novo Subsetor'
+  subBtn.type = 'button'
   subBtn.className = 'botunn';
-  subBtn.onclick = async()=>{
+  subBtn.onclick = async(event)=>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
-   await fetch(`${FetchTarget}/subsetores`,{method:'POST',headers:{'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify({id:item.ID})});
+   await makeRequest('subsetores',null,'POST',true,{id:item.ID})
    await reload();
   }
   
   const objBtn = document.createElement('button');
    objBtn.innerText = 'Novo Tipo de Objeto'
+   objBtn.type = 'button'
    objBtn.className = 'botunn';
-   objBtn.onclick = async()=>{
+   objBtn.onclick = async(event)=>{
     if(!canPressShit)return;
+     event.preventDefault()
     canPressShit = false
-    await(await fetch(`${FetchTarget}/tipoObjetos`,{method:'POST',headers:{'Content-Type': 'application/json',token:localStorage.getItem('token')},body:JSON.stringify({id:item.ID,isSub:false})})).json();
+    await makeRequest('tipoObjetos',null,'POST',true,{id:item.ID,isSub:false})
     await reload();
   }
   
 
-  img.onclick = ()=>{
+  img.onclick = (event)=>{
    if(!canPressShit)return;
+     event.preventDefault()
    canPressShit = false
    base.classList.add('editing');
    document.body.style.cursor = 'auto';
@@ -516,7 +554,8 @@ async function getSector(item){
    editStr.value = (name.innerText=='Novo Setor'?'':name.innerText);
    let block = false;
    editStr.addEventListener('keydown', async (event)=>{
-     if (event.key!=='Enter') return;
+    if (event.key!=='Enter') return;
+    event.preventDefault()
     if (block) return;
     block = true;
     if (editStr.value.length>40){
@@ -534,6 +573,7 @@ async function getSector(item){
     sendType = 0;
    });
    editStr.addEventListener('blur', async (event)=>{
+     event.preventDefault()
     if (block) return;
     block = true;
     if (editStr.value.length>40){
@@ -588,7 +628,7 @@ document.getElementById('p3').onchange = ()=>{
 }
 reload()
 document.getElementById('rel').onclick = async()=>{
- const csvU = await fetch(`${FetchTarget}/csv`)
+ const csvU = (await makeRequest('csv')).result
  const csv = await csvU.json();
  const blob = new Blob(["\uFEFF"+csv.result], { type: 'text/csv;charset=utf-8;' });
  const url = URL.createObjectURL(blob);
