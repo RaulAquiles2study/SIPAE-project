@@ -8,18 +8,29 @@
   <div class="login-container">
     <h1>Bem vindo!</h1>
     <form>
-      <label>Login:</label>
-      <input type="text" id="login" required />
-      <label>Senha:</label>
-      <input type="password" id="senha" required />
+      <label for="login">Login:</label>
+      <input type="text" id="login" required placeholder="Digite seu login" />
+      
+      <label for="senha">Senha:</label>
+      <input type="password" id="senha" required placeholder="Digite sua senha" />
+      
       <input type="button" value="Entrar" id="entrar">
     </form>
-    <a href="./register.html" style="display:block;margin-bottom:-15px;text-align:center">Não possuo uma conta</a><br/>
+    
+    <div class="login-footer">
+      <a href="./register.html">Não possuo uma conta</a>
+    </div>
+    
+    <div class="brand">
+      <h2>SIPAE</h2>
+      <p>Sistema de Acompanhamento e Patrimônio Escolar</p>
+    </div>
   </div>
 </body>
 <script type="module">
 import {makeRequest,redirecionar} from '../script.js'
 localStorage.setItem('token',null)
+
 async function login(){
  const login = document.getElementById("login").value;
  const senha = document.getElementById("senha").value;
@@ -30,11 +41,12 @@ async function login(){
 
  redirecionar('Mostrar',{filtros:7});
 }
+
 document.getElementById('senha').addEventListener('keydown',async(event)=>{
  if (event.key!=='Enter') return;
  login()
 })
+
 document.getElementById('entrar').addEventListener('click', login);
 </script>
-
 </html>
