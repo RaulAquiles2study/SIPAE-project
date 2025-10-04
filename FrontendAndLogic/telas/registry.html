@@ -79,8 +79,8 @@ async function getThingy(item){
     novoDiv.appendChild(role)
 
     const date = document.createElement('h3');
-    const dateobj = new Date(item.data);
-    date.textContent = `${dateobj.getDay()}/${dateobj.getMonth()}/${dateobj.getFullYear()} ${dateobj.getHours()}:${dateobj.getMinutes()}`;
+    const dateobj = new Date(item.data.getTime());
+    date.textContent = `${dateobj.getDate()+1}/${dateobj.getMonth()+1}/${dateobj.getFullYear()} ${dateobj.getHours()}:${dateobj.getMinutes()}`;
     novoDiv.appendChild(date)
 
     novoCard.appendChild(novoDiv);

@@ -315,29 +315,30 @@ async function reload(){
 async function generateObjects(objs,table){
  let i = 0
  for (const item of objs){
-  const row = document.createElement('tr')
-  const data = item.customData.split(',')
-  const sel = document.createElement('td')
-  const checky = document.createElement('input')
-  checky.type = 'checkbox'
-  checky.checked = selection.has(item.ID)
-  checky.style.width = '30px'
-  checky.style.height = '30px'
+  const row = document.createElement('tr');
+  const data = item.customData.split(',');
+  const sel = document.createElement('td');
+  const checky = document.createElement('input');
+  checky.type = 'checkbox';
+  checky.checked = selection.has(item.ID);
+  checky.style.width = '30px';
+  checky.style.height = '30px';
   checky.onchange = ()=>{
    if (checky.checked)
     selection.add(item.ID);
    else
     selection.delete(item.ID);
   }
-  sel.appendChild(checky)
-  row.appendChild(sel)
+  sel.appendChild(checky);
+  row.appendChild(sel);
 
-  const num = document.createElement('td')
-  num.innerText = ++i+''
-  row.appendChild(num)
+  const num = document.createElement('td');
+  num.innerText = ++i+'';
+  row.appendChild(num);
 
-  const stat = document.createElement('td')
-  const statSelect = document.createElement('select')
+  const stat = document.createElement('td');
+  const statSelect = document.createElement('select');
+  if (item.estado==1) statSelect.disabled = true;
   const o0 = document.createElement('option');
   const o1 = document.createElement('option');
   const o2 = document.createElement('option');
@@ -552,9 +553,20 @@ valInput.oninput = ()=>{
  valInput.value = valInput.value.replace(/(.*\..*)([^\d])+/g,'$1')
 }
 
+const descLabel = document.createElement('label')
+descLabel.htmlFor = 'desc'
+descLabel.innerText = 'Descrição do problema';
+
+f.appendChild(descLabel);
+
+const descInput = document.createElement('textarea');
+descInput.name = 'desc';
+descInput.placeholder = 'Descrição...';
+f.appendChild(descInput);
+
 const datLabel = document.createElement('label')
 datLabel.htmlFor = 'dat'
-datLabel.innerText = 'Data esperada de manutenção';
+datLabel.innerText = 'Retorno esperado da manutenção';
 
 f.appendChild(datLabel);
 
@@ -562,6 +574,17 @@ const dateInput = document.createElement('input')
 dateInput.name = 'dat'
 dateInput.type = 'date';
 f.appendChild(dateInput)
+
+const sdat = document.createElement('label')
+sdat.htmlFor = 'deet'
+sdat.innerText = 'Pedido da manutenção';
+
+f.appendChild(sdat);
+
+const sdateInput = document.createElement('input')
+sdateInput.name = 'deet'
+sdateInput.type = 'date';
+f.appendChild(sdateInput)
 
 const brow = document.createElement('div')
 brow.className = 'buttonRow'
@@ -607,7 +630,7 @@ confurm.addEventListener('click',async (event)=>{
   return;
  }
  bgDiv.style.display = 'none';
- doinMain = {objIDs:Array.from(selection),value:parseInt(valInput.value),data:dateInput.valueAsDate}
+ doinMain = {objIDs:Array.from(selection),desc:descInput.value,calldate:sdateInput.valueAsDate.toISOString(),value:parseInt(valInput.value),data:dateInput.valueAsDate.toISOString()}
 })
 brow.appendChild(confurm);
 

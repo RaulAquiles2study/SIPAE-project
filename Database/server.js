@@ -1,7 +1,7 @@
 import database from './database.js';
 import CONSTANTS from './CONSTANTS.js';
-import get from './stuffGetter.js';
-import getCSV from './getCSV.js'
+import get from './getters/stuffGetter.js';
+import getCSV from './getters/getCSV.js'
 
 import express from 'express';
 import cors from 'cors';
