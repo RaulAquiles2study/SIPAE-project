@@ -48,42 +48,56 @@ body {
 }
 
 .botunn {   /*Botões no geral. Adicionar, pular e  etc*/
- width:100px;
- height:40px;
- border-radius:15px;
- background-color:lime;
- border: solid rgb(3, 212, 3) 2px;
- color:black;
- transition-duration: 200ms;
- margin-top: 8px;
+    width: 140px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #00A8FF, #2c3e50);
+    border: none;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+    margin: 4px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .botunn:hover{
- scale:1.05;
- transition-duration: 200ms;
- cursor:pointer;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #00A8FF, #2c3e50);
 }
 
 .item{
- width:100%;
- height:56px;
- min-height:55px;
- display:flex;
- border: solid black 1.5px;
- border-radius: 10px;
- font-size:30px;
- margin-bottom:10px;
+    width: 100%;
+    height: 80px;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    border: none;
+    border-radius: 15px;
+    font-size: 30px;
+    margin-bottom: 12px;
+    background: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    padding: 0px;
+    position: relative;
+    overflow: hidden;
+
 }
 
 .itemEdit {
-    margin-top: -4px;
+    margin-top: 0;
     width: 100%;
-    height:48px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    font-size: 20px;
-    background-color: #c7c5c5;
-    color: black;
+    height: 50px;
+    border: 2px solid #e1e5e9;
+    border-radius: 12px;
+    font-size: 18px;
+    background-color: #f8f9fa;
+    color: #2d3748;
+    padding: 0 15px;
+    transition: all 0.3s ease;
 }
 
         /* Estilização da barra lateral */
@@ -96,21 +110,45 @@ body {
     flex-direction: column;
 }
 
-.tabela {
- border: solid rgb(30, 23, 95) 3.5px;
- border-collapse: separate;
- border-spacing: 2.5px;
- border-style: 10px;
- border-radius: 10px;
- filter: drop-shadow(8px 8px 8px rgba(0,0,0,0.1));
+
+:root {
+    --primary-color: rgb(30, 23, 95);
+    --shadow: 8px 8px 8px rgba(0, 0, 0, 0.1);
 }
 
-.tabela td {
- border: solid black 2px;
- text-align:center;
- border-radius: 10px;
- height: 38px;
+.tabela {
+    border: 3.5px solid rgb(30, 23, 95);
+    border-collapse: collapse; /* Melhor para tabelas */
+    border-radius: 10px;
+    overflow: hidden; /* Importante para border-radius funcionar */
+    box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.1); /* Mais compatível */
+    background-color: white; /* Garante fundo sólido */
 }
+
+/* Estilização adicional para células */
+.tabela th,
+.tabela td {
+    border: 1px solid rgba(30, 23, 95, 0.3);
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.tabela th {
+    background-color: rgb(30, 23, 95);
+    color: white;
+    font-weight: 600;
+}
+
+.tabela tr:nth-child(even) {
+    background-color: rgba(30, 23, 95, 0.05);
+}
+
+.tabela tr:hover {
+    background-color: rgba(30, 23, 95, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+
 
 .perfil {
     margin-bottom: 30px;
@@ -149,23 +187,88 @@ body {
 }
 
 .cabecalho {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #ddd;
-    width:100%
+    margin-bottom: 30px;
+    padding-bottom: 25px;
+    border-bottom: 2px solid #e9ecef;
+    width: 100%;
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
 }
 
 .cabecalho h1 {
-    font-size: 2rem;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, #2c3e50, #667eea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    font-weight: 700;
 }
 
 .pesquisa {
-    padding: 10px;
-    width: 25%;
-    max-width: 800px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #c7c5c5;
-    color: black;
+    padding: 14px 20px;
+    width: 30%;
+    max-width: 300px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background-color: white;
+    color: #2d3748;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    margin-right: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
+.pesquisa:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.footButtons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.footButtons .botunn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+
+/* Estilização dos checkboxes */
+input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+    accent-color: #2c3e50;
+}
+
+/* Labels estilizados */
+label {
+    font-weight: 600;
+    color: #495057;
+    margin-right: 15px;
+}
+
+/* Estado de edição */
+.item.editing {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px dashed #667eea;
+}
