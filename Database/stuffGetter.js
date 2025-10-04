@@ -23,7 +23,6 @@ async function getCategoryInfo(id){
    case 2:data.quebrado++; break;
   }
  });
- console.log(data)
  return data
 }
 
