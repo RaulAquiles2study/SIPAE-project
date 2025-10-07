@@ -24,7 +24,7 @@ async function parseData(data,secn,subn,objn){
     break;
    case 2:{
     on = item.name;
-    str += `${sn};${sun};${on};${item.name};#;Status`
+    str += `${sn};${sun};${on};${item.name};#;Valor;Status`
     const data = await get.categoryInfo(item.ID)
     for (const field of data.custom){
      str+=`;${field}`
@@ -36,7 +36,7 @@ async function parseData(data,secn,subn,objn){
    }
    case 3:{
     i++
-    str += `;;;;${i};${getStatus(item.estado)}`
+    str += `;;;;${i};${item.valor};${getStatus(item.estado)}`
     const dataArray = item.custom
     for (const field of dataArray){
      str+=`;${field}`
@@ -47,12 +47,11 @@ async function parseData(data,secn,subn,objn){
   str += '\n'
   if (item.children.length>0)
    str += await parseData(item.children,sn,sun,on);
-  if (item.type ==2)str+='\n'
  }
  return str;
 }
 
 export default async ()=>{
  const data = await get.all(0b1111,{});
- return await 'Setor;Subsetor;Objeto\n'+parseData(data);
+ return await 'Setor;Subsetor;Objeto;;;;Status\n'+(await parseData(data));
 }

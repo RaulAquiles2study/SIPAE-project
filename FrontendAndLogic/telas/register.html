@@ -31,9 +31,9 @@ document.getElementById('entrar').addEventListener('click', async () => {
  const resultR = await makeRequest('users',null,'POST',false,{name:login,pass:senha,email:email})
 
  localStorage.setItem('token',resultR.result);
- if (!resultR.ok)return;
-
- redirecionar('Mostrar');
+ 
+ if (resultR.ok)
+  redirecionar('Mostrar');
 });
 </script>
 

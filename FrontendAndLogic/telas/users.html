@@ -62,6 +62,7 @@ function addObj(user){
   for (let i = 1;i<thisUser.rank;i++){
    const b = document.createElement('input');
    b.type = 'button';
+   b.className = 'botunn'
    b.value = 'Tornar '+getRankString(i);
    b.onclick = async()=>{
     const resU = await makeRequest('users/setRole',null,'POST',true,{id:user.UID,newrole:i})
@@ -75,6 +76,7 @@ function addObj(user){
   if (thisUser.uid==1){
    const b = document.createElement('input');
    b.type = 'button';
+   b.className = 'botunn'
    b.value = 'Tornar '+getRankString(6);
    b.onclick = async()=>{
     const resU = await makeRequest('users/setRole',null,'POST',true,{id:user.UID,newrole:6})
@@ -88,6 +90,8 @@ function addObj(user){
    const b = document.createElement('input')
    b.type = 'button';
    b.value = 'Remover Usuário';
+   b.style.background = 'linear-gradient(135deg, #FF4444, #882222)'
+   b.className = 'botunn'
    b.onclick = async()=>{
     const resultU = await makeRequest('users/'+user.UID,null,'DELETE',true)
     if (resultU.ok){

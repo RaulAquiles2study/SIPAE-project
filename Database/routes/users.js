@@ -51,9 +51,9 @@ router.post('/users',async(req,res)=>{
   }
 
   const salt = await bcrypt.genSalt(CONSTANTS.saltRounds);
-  const hashedPass = await bcrypt.hash(pass,salt);
+  const hashedPass = await bcrypt.hash(pass.trim(),salt);
 
-  const user = (await database('users').insert({email:email,senha:hashedPass,nome:name,rank:1}).returning('*'))[0];
+  const user = (await database('users').insert({email:email.trim(),senha:hashedPass,nome:name.trim(),rank:1}).returning('*'))[0];
 
   const token = jwt.sign(
     {uid:user.UID},

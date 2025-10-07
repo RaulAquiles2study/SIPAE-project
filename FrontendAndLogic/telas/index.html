@@ -39,7 +39,8 @@ async function login(){
 
  localStorage.setItem('token',resultR.result);
 
- redirecionar('Mostrar',{filtros:7});
+ if (resultR.ok)
+  redirecionar('Mostrar',{filtros:7});
 }
 
 document.getElementById('senha').addEventListener('keydown',async(event)=>{

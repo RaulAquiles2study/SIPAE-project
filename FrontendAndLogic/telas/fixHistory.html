@@ -42,8 +42,9 @@ async function reload(){
   redirecionar('fixers');
  }
  base.appendChild(b1);
+ if(Object.values(objs).length<1)return;
 
- for (const man of objs){
+ for (const man of data.maintenanceObjects){
   console.log(man)
   base.appendChild(await getThingy(man))
  }

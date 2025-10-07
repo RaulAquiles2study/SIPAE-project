@@ -10,7 +10,6 @@ function hasMask(num,mask){
  return (num&mask) == mask;
 }
 
-/* THIS IS GONNA GET FUNKY! */
 async function getCategoryInfo(id){
  const objs = await getCategoryObjects(id)
  const th = await database('tipoObjetos').where('ID',id).first()
@@ -115,4 +114,3 @@ async function getStuff(filter,search){
  return result
 }
 export default {all:getStuff,sector:getSectorChildren,sub:getSubsectorChildren,objects:getCategoryObjects,categoryInfo:getCategoryInfo}
-/* WELL, THAT WAS FUNKY. */

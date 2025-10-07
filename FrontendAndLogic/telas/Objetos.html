@@ -218,6 +218,8 @@ async function reload(){
  const newfieldBtn = document.createElement('button')
  newfieldBtn.type = 'button';
  newfieldBtn.innerText = 'Novo Campo'
+newfieldBtn.className = 'botunn'
+
 
  newfieldBtn.onclick = async()=>{
   if (!canClickShit) return;
@@ -242,6 +244,8 @@ async function reload(){
  const newObjBtn = document.createElement('button')
  newObjBtn.type = 'button';
  newObjBtn.innerText='Novo Objeto'
+ newObjBtn.className = 'botunn'
+ newObjBtn.style.background = 'linear-gradient(135deg, #00FF44, #008822)'
  newObjBtn.onclick = async()=>{
   if (!canClickShit) return;
   canClickShit = false;
@@ -256,6 +260,8 @@ async function reload(){
  const delObjBtn = document.createElement('button')
  delObjBtn.type = 'button';
  delObjBtn.innerText='Deletar Objeto'
+ delObjBtn.className = 'botunn'
+ delObjBtn.style.background = 'linear-gradient(135deg, #FF4444, #882222)'
  delObjBtn.onclick = async()=>{
   if (!canClickShit) return;
   canClickShit = false;
@@ -276,6 +282,7 @@ async function reload(){
  const manObjDat = document.createElement('td')
  const manObjBtn = document.createElement('button')
  manObjBtn.type = 'button';
+ manObjBtn.className = 'botunn'
  manObjBtn.innerText='Enviar à Manutenção'
  manObjBtn.onclick = async()=>{
   if (!canClickShit) return;
@@ -333,7 +340,7 @@ async function generateObjects(objs,table){
   row.appendChild(sel);
 
   const num = document.createElement('td');
-  num.innerText = ++i+'';
+  num.innerText = ++i+''
   row.appendChild(num);
 
   const stat = document.createElement('td');

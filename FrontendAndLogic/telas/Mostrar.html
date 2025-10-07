@@ -77,6 +77,7 @@ if (user.rank >= 4){
  btnSect.innerText = 'Novo Setor';
  btnSect.className = 'botunn';
  btnSect.type = 'button'
+ btnSect.style.background = 'linear-gradient(135deg, #667eea, #2c3e50)';
  btnSect.addEventListener('click', async(event)=>{
   event.preventDefault()
   if(!canPressShit)return;
@@ -95,7 +96,7 @@ async function recalcFilters(){
  localStorage.setItem('curFilter',curFilter);
  await reload()
 }
-//BEHOLD! MY INNEFFICIENCY MACHINE!
+
 var page = 0;
 var limit = 10;
 var i = page*limit;
@@ -387,6 +388,7 @@ async function getSubsector(item){
   objBtn.innerText = 'Novo Tipo de Objeto'
   objBtn.className = 'botunn';
   objBtn.type = 'button'
+  objBtn.style.background = 'linear-gradient(135deg, #ff8c78, #ff3b19)';
   objBtn.onclick = async(event)=>{
    if(!canPressShit)return;
      event.preventDefault()
@@ -515,6 +517,7 @@ async function getSector(item){
   subBtn.innerText = 'Novo Subsetor'
   subBtn.type = 'button'
   subBtn.className = 'botunn';
+  subBtn.style.background = 'linear-gradient(135deg, #90EE90, #006400)';
   subBtn.onclick = async(event)=>{
    if(!canPressShit)return;
      event.preventDefault()
@@ -527,6 +530,7 @@ async function getSector(item){
    objBtn.innerText = 'Novo Tipo de Objeto'
    objBtn.type = 'button'
    objBtn.className = 'botunn';
+   objBtn.style.background = 'linear-gradient(135deg, #ff8c78, #ff3b19)';
    objBtn.onclick = async(event)=>{
     if(!canPressShit)return;
      event.preventDefault()
@@ -628,9 +632,9 @@ document.getElementById('p3').onchange = ()=>{
 }
 reload()
 document.getElementById('rel').onclick = async()=>{
- const csvU = (await makeRequest('csv')).result
- const csv = await csvU.json();
- const blob = new Blob(["\uFEFF"+csv.result], { type: 'text/csv;charset=utf-8;' });
+ const csv = (await makeRequest('csv')).result
+ console.log(csv)
+ const blob = new Blob(["\uFEFF"+csv], { type: 'text/csv;charset=utf-8;' });
  const url = URL.createObjectURL(blob);
  const link = document.createElement('a')
  link.href = url

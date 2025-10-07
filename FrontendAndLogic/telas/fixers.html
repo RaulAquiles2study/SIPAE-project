@@ -44,7 +44,10 @@ async function reload(){
   redirecionar('fixHistory');
  }
  base.appendChild(b1);
- for (const man of objs){
+
+ if(Object.values(objs).length<1)return;
+
+ for (const man of data.maintenanceObjects){
   console.log(man)
   base.appendChild(await getThingy(man))
  }
