@@ -13,7 +13,7 @@
 
         <main class="conteudo">
             <header class="cabecalho">
-                <h1>Manutenções</h1>
+                <h1>Histórico de Manutenções</h1>
                 <p id="totalObjects"></p>
                 <p id="totalMaintenances"></p>
                 <p id="totalCosts"></p>
@@ -30,20 +30,19 @@ import {criarSidebar,makeRequest,redirecionar,getUser,getRankString} from '../sc
 document.querySelector('.menu-lateral').appendChild(await criarSidebar())
 
 async function reload(){
- const data = (await makeRequest('manutencoes/0',null,'GET',true)).result
+ const data = (await makeRequest('manutencoes/1',null,'GET',true)).result
  console.log(data)
  const objs = data.maintenanceObjects??[];
- document.getElementById('totalObjects').innerText = 'Objetos em manutenção: '+data.totalObjects+' objetos'
- document.getElementById('totalMaintenances').innerText = 'Processos de manutenção: '+data.maintenanceServices+' processos'
- document.getElementById('totalCosts').innerText = 'Custo das manutenções atuais: '+data.totalObjectValues+' R$'
  const base = document.querySelector('.cards')
- const b1 = document.createElement('button')
+
+  const b1 = document.createElement('button')
  b1.className = 'botunn';
- b1.innerText = 'Ver manutenções concluídas'
+ b1.innerText = 'Ver manutenções em progresso'
  b1.onclick = async()=>{
-  redirecionar('fixHistory');
+  redirecionar('fixers');
  }
  base.appendChild(b1);
+
  for (const man of objs){
   console.log(man)
   base.appendChild(await getThingy(man))
@@ -82,15 +81,6 @@ async function getThingy(item){
  const t6 = document.createElement('h4');
  t6.textContent = `Expectativa de entrega em: ${dateobj2.getDate()+1}/${dateobj2.getMonth()+1}/${dateobj2.getFullYear()}`;
  novoDiv.appendChild(t6);
-
- const b1 = document.createElement('button')
- b1.className = 'botunn';
- b1.innerText = 'Marcar como concluído'
- b1.onclick = async()=>{
-  await makeRequest('manutencoes',null,'PUT',true,{manID:item.ID})
-  await reload();
- }
- novoDiv.appendChild(b1);
 
  novoCard.appendChild(novoDiv);
 
