@@ -8,55 +8,31 @@
 body {
     display: flex;
     background-color: #f5f5f5;
-
-/*modal de manutenção*/
+}
 
 .modalBG {
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4);
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(3px);
+ width:100vw;
+ height:100vh;
+ background-color: rgba(0, 0, 0, 0.2);
+ position:fixed;
+ top:0;
+ left:0;
+ display:flex;
+ justify-content:center;
+ align-items:center;
 }
-
-
 .modalWindow {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 25px;
-    min-width: 400px;
-    max-width: 500px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(30, 23, 95, 0.1);
+ opacity:1;
+ min-width: 200px;
+ background-color: #f3f3f3;
+ align-items:center;
 }
 
-.modalWindow input,
-.modalWindow textarea {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    background-color: #f8f9fa;
-    align-items:center;
-    
+.modalWindow form {
+ display: flex;
+ flex-direction: column; /* stack children vertically */
+ gap: 10px; /* optional spacing between inputs */
 }
-.modalWindow input:focus,
-.modalWindow textarea:focus {
-    outline: none;
-    border-color: rgb(102, 92, 193);
-    background-color: white;
-    box-shadow: 0 0 0 3px rgba(30, 23, 95, 0.1);
-}
-
-
-
 
 .modalWindow .buttonRow {
  display: flex;
@@ -134,95 +110,45 @@ body {
     flex-direction: column;
 }
 
-.menu-lateral {
-    width: 250px;
-    background: #2c3e50;
-    color: white;
-    padding: 20px 0;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-
-}
-
-.menu-setores li {
-    padding: 12px 25px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    border-left: 3px solid transparent;
-}
-
-.menu-setores li:hover {
-    background-color: #34495e;
-    border-left-color: #3498db;
-}
-
-.menu-footer {
-    margin-top: auto;
-    padding: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-
-.tabela {
-    border: 2px solid rgb(30, 23, 95);
-    border-collapse: collapse;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    background-color: white;
-    width: 100%;
-    font-size: 14px;
-}
-
-/* Estilização adicional para células */
-.tabela th,
-.tabela td {
-    border: 1px solid rgba(30, 23, 95, 0.2);
-    padding: 10px 12px;
-    text-align: center;
-    transition: all 0.2s ease;
-}
-
-
-.tabela th {
-    background: linear-gradient(135deg, rgb(30, 23, 95), rgb(45, 35, 140));
-    color: white;
-    font-weight: 700;
-    font-size: 15px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid rgb(20, 15, 70);
-}
-
-.tabela td {
-    color: #333;
-    font-weight: 400;
-}
-
-.tabela tr:nth-child(even) {
-    background-color: rgba(30, 23, 95, 0.03);
-}
-
-.tabela tr:nth-child(odd) {
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
-.tabela tr:hover {
-    background-color: rgba(30, 23, 95, 0.08);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(30, 23, 95, 0.1);
-}
-
-.tabela thead tr:hover {
-    transform: none;
-    box-shadow: none;
-}
 
 :root {
     --primary-color: rgb(30, 23, 95);
     --shadow: 8px 8px 8px rgba(0, 0, 0, 0.1);
 }
+
+.tabela {
+    border: 3.5px solid rgb(30, 23, 95);
+    border-collapse: collapse; /* Melhor para tabelas */
+    border-radius: 10px;
+    overflow: hidden; /* Importante para border-radius funcionar */
+    box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.1); /* Mais compatível */
+    background-color: white; /* Garante fundo sólido */
+}
+
+/* Estilização adicional para células */
+.tabela th,
+.tabela td {
+    border: 1px solid rgba(30, 23, 95, 0.3);
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.tabela th {
+    background-color: rgb(30, 23, 95);
+    color: white;
+    font-weight: 600;
+}
+
+.tabela tr:nth-child(even) {
+    background-color: rgba(30, 23, 95, 0.05);
+}
+
+.tabela tr:hover {
+    background-color: rgba(30, 23, 95, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+
 
 .perfil {
     margin-bottom: 30px;
@@ -345,5 +271,4 @@ label {
 .item.editing {
     background: linear-gradient(135deg, #f8f9fa, #e9ecef);
     border: 2px dashed #667eea;
-}
 }
