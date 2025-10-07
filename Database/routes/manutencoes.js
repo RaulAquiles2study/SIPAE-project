@@ -4,8 +4,9 @@ import { Router } from "express";
 
 const router = Router();
 
-router.get('/manutencoes',authMiddleware,rankMiddleware(4),async(req,res)=>{
- const mainarray = await database('manutencoes').where('concluido',false);
+router.get('/manutencoes/:old',authMiddleware,rankMiddleware(4),async(req,res)=>{
+ const {old} = req.params;
+ const mainarray = await database('manutencoes').where('concluido',old==1);
 
  if (mainarray.length<1)
   return res.status(200).json({ok:true,result:
