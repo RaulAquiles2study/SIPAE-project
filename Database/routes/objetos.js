@@ -12,6 +12,16 @@ const router = Router();
   res.status(201).json({ok:true});
  });
 
+ router.get('/objetos',async(req,res)=>{
+    let count = 0;
+    let values = 0;
+    for (const obj of await database('objetos')){
+        count++;
+        values+=obj.valor
+    }
+    return res.status(200).json({ok:true,result:{count:count,sum:values}}); 
+ });
+
 
  router.put('/objetos/state',authMiddleware,rankMiddleware(5),async(req,res)=>{
   const {id,np} = req.body
