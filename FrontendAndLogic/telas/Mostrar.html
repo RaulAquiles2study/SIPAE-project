@@ -20,6 +20,9 @@
       <input id="sub" type="checkbox"/>Subsetores
       <input id="typ" type="checkbox"/>Tipos de Objeto <br/>
 
+      <p id='totalObjs'></p>
+      <p id='totalVals'></p>
+
     <input type="text" id="p1" class="pesquisa" placeholder="Pesquisar por setor..."/>
     <input type="text" id="p2" class="pesquisa" placeholder="Pesquisar por subsetor..."/>
     <input type="text" id="p3" class="pesquisa" placeholder="Pesquisar por tipo de objeto..."/>
@@ -117,7 +120,9 @@ async function reload(){
  const queryString = params.toString();
 
  const res = (await makeRequest('getStuff',queryString,'GET',false,null,{filter:curFilter})).result
-
+  const vals = (await makeRequest('objetos',null,'GET',false)).result
+  document.getElementById('totalObjs').innerText = 'Total de objetos: '+vals.count
+  document.getElementById('totalVals').innerText = 'Valor total dos objetos: '+vals.sum
  const curScroll = window.scrollY;
 
  const main = document.querySelector('.conteudo')
